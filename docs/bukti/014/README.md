@@ -7,3 +7,4 @@
 | B-014-03 | Dasbor lengkap termasuk widget SLO dan koneksi Cloud SQL | Monitoring > Dashboards > LabTrack Overview | [ ] |
 | B-014-04 | Uptime check `/health` hijau dari beberapa region | Monitoring > Uptime checks > LabTrack API /health | [ ] |
 | B-014-05 | Terminal saat `scripts/sla_report.py` dijalankan, dan berkas laporan yang dihasilkan | `python scripts/sla_report.py --project $PROJECT_ID --start 2026-10-01 --end 2026-10-26` | [ ] |
+| B-014-06 | Metrik VM dari Ops Agent: CPU, memori, disk, jaringan | Compute Engine > VM instances > labtrack-ops > Observability | [ ] |

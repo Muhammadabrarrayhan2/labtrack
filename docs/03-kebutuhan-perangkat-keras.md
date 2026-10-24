@@ -229,3 +229,57 @@ locust -f scripts/loadtest/locustfile.py --host "$API" \
 ### 5.3 Analisis
 
 > [ISI SETELAH DEPLOY: bandingkan p95 dengan target 800 ms di SLO, jumlah instans maksimum yang tercapai, CPU Cloud SQL tertinggi, dan apakah ada galat 5xx atau 429. Nyatakan apakah ukuran saat ini memadai untuk estimasi 7 RPS di bagian 2.3 dan rekomendasi perubahan bila ada]
+
+### 5.4 Hasil pembanding di lingkungan lokal (sudah dijalankan)
+
+Skenario yang sama dijalankan pada 24 Oktober 2026 terhadap tumpukan lokal `docker compose` (satu kontainer API dan PostgreSQL 16 di laptop pengembang), 50 pengguna, laju *spawn* 5 per detik, durasi 2 menit, setelah data demo diisi dengan `scripts/seed_demo.py`. Angka berikut diambil dari `docs/bukti/lokal/locust_stats.csv` dan **bukan** hasil Google Cloud. Fungsinya membuktikan bahwa skenario uji berjalan, serta menjadi garis dasar tanpa latensi jaringan internet, tanpa *cold start*, dan tanpa batas vCPU bersama Cloud SQL.
+
+| Endpoint | Jumlah permintaan | Gagal | p50 (ms) | p95 (ms) | RPS |
+|---|---|---|---|---|---|
+| `GET /students` | 1.155 | 0 | 8 | 15 | 9,73 |
+| `GET /courses/{id}/attendance-summary` | 871 | 0 | 11 | 20 | 7,33 |
+| `PUT /sessions/{id}/attendance` | 550 | 0 | 60 | 69 | 4,63 |
+| `GET /health` | 277 | 0 | 4 | 10 | 2,33 |
+| `GET /courses/{id}/students` | 50 | 0 | 23 | 49 | 0,42 |
+| `POST /auth/login` | 50 | 0 | 330 | 360 | 0,42 |
+| **Agregat** | **2.953** | **0 (0%)** | **10** | **65** | **24,87** |
+
+Pengamatan:
+
+1. Laju 24,87 RPS sekitar 3,5 kali beban lonjakan yang diestimasi (7 RPS), sesuai rancangan uji di bagian 2.3.
+2. Login memakan sekitar 330 ms karena bcrypt, sesuai asumsi 0,2 sampai 0,3 detik CPU per verifikasi di bagian 3.1. Inilah alasan login dilakukan sekali per pengguna.
+3. `PUT` kehadiran adalah operasi tulis terberat (p95 69 ms) karena melakukan *upsert* 12 baris dalam satu transaksi.
+4. Tidak ada kegagalan. Hasil di Google Cloud diperkirakan lebih lambat karena latensi jaringan dan *cold start*; selisihnya menjadi bahan analisis di bagian 5.3.
+
+## 6. Uji *stress*
+
+Uji *performance* di bagian 5 mengukur kinerja pada beban yang direncanakan. Uji *stress* mencari titik jenuh dan memeriksa apakah sistem pulih setelah beban turun. Profil bertahap didefinisikan di `scripts/loadtest/stages.py` dan diuji di `tests/test_loadtest_stages.py`:
+
+| Tahap | Durasi | Pengguna virtual | Tujuan |
+|---|---|---|---|
+| 1 | 2 menit | 100 | Dua kali uji *performance* |
+| 2 | 2 menit | 150 | |
+| 3 | 2 menit | 200 | Diperkirakan mendekati batas 3 instans x 40 konkurensi |
+| 4 | 2 menit | 250 | |
+| 5 | 2 menit | 300 | Kelebihan beban |
+| 6 | 2 menit | 20 | Pemulihan: latensi dan galat harus kembali normal |
+
+```bash
+LOAD_SHAPE=stress LABTRACK_PASSWORD=... locust -f scripts/loadtest/locustfile.py \
+  --host "$API" --headless --csv docs/bukti/003/stress --html docs/bukti/003/stress-report.html
+```
+
+Peringatan: uji ini sengaja melampaui kapasitas. Jalankan di luar jam praktikum. Beban 300 pengguna menghasilkan sekitar 150 RPS, sehingga Cloud Run akan mencapai batas 3 instans dan dapat mengembalikan galat 429 atau 503. Kondisi ini memakai anggaran galat SLO, dan hal tersebut memang bagian dari tujuan uji.
+
+| Tahap (VU) | p95 (ms) | RPS | Galat (%) | Instans Cloud Run | CPU Cloud SQL |
+|---|---|---|---|---|---|
+| 100 | > [ISI SETELAH DEPLOY: dari docs/bukti/003/stress_stats_history.csv] | | | | |
+| 150 | > [ISI SETELAH DEPLOY] | | | | |
+| 200 | > [ISI SETELAH DEPLOY] | | | | |
+| 250 | > [ISI SETELAH DEPLOY] | | | | |
+| 300 | > [ISI SETELAH DEPLOY] | | | | |
+| 20 (pemulihan) | > [ISI SETELAH DEPLOY] | | | | |
+
+> [BUKTI: screenshot B-003-07, grafik Locust (laporan HTML) p95 dan jumlah pengguna selama uji stress, ditambah grafik "Container instances" di dasbor]
+
+> [ISI SETELAH DEPLOY: titik jenuh (jumlah VU saat p95 melewati 800 ms atau galat melewati 1%), komponen yang menjadi hambatan (batas instans, CPU Cloud SQL, atau koneksi), dan waktu pemulihan setelah tahap 6 dimulai]

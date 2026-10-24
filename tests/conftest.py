@@ -3,7 +3,8 @@ import tempfile
 
 # Configure the app for tests before it is imported
 _tmp = tempfile.mkdtemp(prefix="labtrack-test-")
-os.environ["DATABASE_URL"] = f"sqlite:///{_tmp}/test.db"
+# TEST_DATABASE_URL runs the same suite against PostgreSQL, e.g. in CI or with docker compose
+os.environ["DATABASE_URL"] = os.environ.get("TEST_DATABASE_URL") or f"sqlite:///{_tmp}/test.db"
 os.environ["LOCAL_UPLOAD_DIR"] = f"{_tmp}/uploads"
 os.environ["JWT_SECRET"] = "test-secret-key-that-is-at-least-32-bytes-long"
 os.environ["BOOTSTRAP_ADMIN_EMAIL"] = "admin@labtrack.dev"

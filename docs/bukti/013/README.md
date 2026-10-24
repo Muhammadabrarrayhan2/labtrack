@@ -25,3 +25,6 @@ scripts/ops/rollback.sh 2>&1 | tee docs/bukti/013/log/2026-10-25-P6.txt
 | B-013-15 | Detail VM `labtrack-ops`: e2-micro, Debian 12, tanpa IP eksternal, service account `labtrack-ops` | Compute Engine > VM instances > labtrack-ops | [ ] |
 | B-013-16 | Jadwal snapshot harian terpasang pada boot disk, retensi 7 hari | Compute Engine > Snapshots > Snapshot schedules, dan Disks > labtrack-ops-boot | [ ] |
 | B-013-17 | SSH langsung tanpa IAP gagal (tidak ada akses dari internet) | `gcloud compute ssh labtrack-ops --zone=<zone>` tanpa `--tunnel-through-iap` | [ ] |
+| B-013-18 | Laporan provisioning VM (konfigurasi, lscpu, free, df, IP, gateway, NAT, layanan) | `scripts/ops/vm-report.sh`, berkas `docs/bukti/013/vm-provisioning-<tanggal>.txt` | [ ] |
+| B-013-19 | Change log patching yang ditulis otomatis | Berkas `docs/bukti/013/change-log.md` setelah `scripts/ops/vm-patch.sh --snapshot` | [ ] |
+| B-013-20 | Restore verification report | Berkas `docs/bukti/013/restore-verification-<tanggal>.md` dari `scripts/ops/sql-restore-test.sh` | [ ] |

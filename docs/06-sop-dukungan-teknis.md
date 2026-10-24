@@ -66,9 +66,19 @@ flowchart TD
 | Tingkat | Definisi | Kaitan dengan SLA | Contoh | Respons awal | Target penyelesaian |
 |---|---|---|---|---|---|
 | P1 Kritis | Layanan tidak dapat dipakai oleh semua atau sebagian besar pengguna, atau ada indikasi kehilangan atau kebocoran data | Langsung mengurangi SLI ketersediaan; mengancam RTO 2 jam dan RPO 24 jam | `/health` 503, semua permintaan 5xx, data kehadiran hilang | 15 menit | 2 jam |
-| P2 Tinggi | Satu fungsi utama gagal untuk banyak pengguna, tanpa solusi alternatif | Menghabiskan anggaran galat; dapat memicu alert *fast burn* | Input kehadiran gagal 500, unduh laporan selalu gagal | 1 jam | 4 jam |
+| P2 Tinggi | Satu fungsi utama gagal untuk banyak pengguna, tanpa solusi alternatif | Menghabiskan anggaran galat; dapat memicu alert *fast burn* | Input kehadiran gagal 500, unduh laporan selalu gagal | 30 menit | 4 jam |
 | P3 Sedang | Gangguan sebagian atau penurunan kinerja, ada solusi alternatif | Dapat melanggar SLO latensi bila berlanjut | Latensi tinggi saat *cold start*, alert CPU atau koneksi Cloud SQL | 4 jam kerja | 2 hari kerja |
 | P4 Rendah | Pertanyaan, permintaan layanan, atau galat akibat masukan pengguna | Tidak memengaruhi SLI (galat 4xx) | Lupa password, 409 NIM duplikat, 415 berkas bukan PDF | 1 hari kerja | 5 hari kerja |
+
+Saat triase, L1 menentukan tingkat keparahan dari dua faktor: *impact* (seberapa luas dampaknya) dan *urgency* (seberapa cepat dampak bertambah atau seberapa dekat tenggat praktikum).
+
+| *Impact* \ *Urgency* | Tinggi: sedang berlangsung praktikum atau tenggat hari ini | Sedang: praktikum dalam 1 sampai 2 hari | Rendah: tidak ada tenggat dekat |
+|---|---|---|---|
+| Tinggi: semua pengguna atau seluruh layanan | P1 | P1 | P2 |
+| Sedang: satu fitur utama atau banyak pengguna | P2 | P2 | P3 |
+| Rendah: satu pengguna, ada solusi alternatif | P3 | P3 | P4 |
+
+Contoh: input kehadiran gagal untuk semua asisten saat sesi berlangsung adalah *impact* sedang dan *urgency* tinggi, sehingga P2. Satu asisten lupa password tanpa sesi hari itu adalah *impact* rendah dan *urgency* rendah, sehingga P4.
 
 Waktu respons dihitung dalam jam dukungan (Senin sampai Sabtu, 07.00 sampai 21.00 WIB). P1 yang terdeteksi oleh alert di luar jam dukungan ditangani pada kesempatan pertama dan dicatat apa adanya.
 
@@ -186,6 +196,21 @@ resource.labels.service_name="labtrack-api"
 ## 6. Contoh simulasi insiden: Cloud SQL dihentikan
 
 > **Contoh simulasi.** Insiden ini disengaja untuk melatih dan membuktikan prosedur. Seluruh waktu, keluaran, dan tangkapan layar di bawah adalah placeholder yang diisi setelah simulasi benar-benar dijalankan. Jangan mengisi angka sebelum simulasi dilakukan.
+
+### 6.0 Gladi bersih di lingkungan lokal (sudah dijalankan)
+
+Sebelum dijalankan di Google Cloud, skenario ini dijalankan pada 24 Oktober 2026 terhadap tumpukan lokal `docker compose` dengan menghentikan kontainer basis data (`docker compose stop db`). Keluaran lengkap ada di `docs/bukti/lokal/simulasi-insiden.txt`.
+
+| Waktu (WIB) | Kejadian |
+|---|---|
+| 10.27.55 | `/health` HTTP 200, basis data `ok`; kontainer basis data dihentikan |
+| 10.28.01 | `/health` HTTP 503 `{"status":"degraded","database":"unreachable","request_id":"b399b530abc84c33"}` |
+| 10.28.19 sampai 10.28.28 | Diagnosis: `request_id` `a08a85caf27b4cb5` dari respons 503 ditemukan pada dua baris log aplikasi berstatus ERROR (`Database health check failed` dan `GET /health 503`), setara kueri `jsonPayload.request_id` di Logs Explorer |
+| 10.28.19 sampai 10.28.28 | `POST /auth/login` mengembalikan HTTP 500 dengan `request_id`, sesuai panduan 5.5 (endpoint lain 500 saat basis data mati) |
+| 10.28.28 | Pemulihan: kontainer basis data dinyalakan kembali |
+| 10.28.34 | `/health` kembali HTTP 200 tanpa *restart* aplikasi, karena *connection pool* membuat koneksi baru (`pool_pre_ping`) |
+
+Durasi gangguan sekitar 39 detik. Gladi ini membuktikan tiga hal: respons galat membawa `request_id`, `request_id` tersebut dapat dilacak di log, dan aplikasi pulih sendiri setelah basis data kembali. Pada Google Cloud, waktu deteksi bergantung pada periode uptime check (5 menit) dan alert, sehingga linimasanya akan lebih panjang.
 
 ### 6.1 Persiapan
 

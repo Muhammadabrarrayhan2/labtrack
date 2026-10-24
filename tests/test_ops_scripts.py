@@ -21,6 +21,9 @@ case "$*" in
   "run services describe"*"status.url"*) echo "https://labtrack-api.example.run.app" ;;
   "run revisions list"*) printf '%s\n' labtrack-api-00004-ddd labtrack-api-00003-ccc labtrack-api-00002-bbb labtrack-api-00001-aaa ;;
   "sql instances list"*) echo "labtrack-db-ab12" ;;
+  "sql backups list"*) echo "1761328800000" ;;
+  "sql backups describe"*"value(windowStartTime)"*) echo "2026-10-24T18:00:00Z" ;;
+  "compute ssh"*"paste -sd"*) echo "active,active NO_REBOOT_REQUIRED" ;;
 esac
 exit 0
 """
@@ -29,12 +32,25 @@ FAKE_CURL = """#!/usr/bin/env bash
 echo '{"status":"ok"}'
 """
 
+# Production (port 6541) has two rows more than the restored copy (6542) in every table
+FAKE_PSQL = r"""#!/usr/bin/env bash
+case "$*" in
+  *port=6541*) echo 14 ;;
+  *) echo 12 ;;
+esac
+"""
+
+FAKE_PROXY = """#!/usr/bin/env bash
+sleep 30
+"""
+
 
 @pytest.fixture()
 def fake_env(tmp_path):
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
-    for name, body in (("gcloud", FAKE_GCLOUD), ("curl", FAKE_CURL)):
+    fakes = (("gcloud", FAKE_GCLOUD), ("curl", FAKE_CURL), ("psql", FAKE_PSQL), ("cloud-sql-proxy", FAKE_PROXY))
+    for name, body in fakes:
         path = bin_dir / name
         path.write_text(body, newline="\n")
         path.chmod(0o755)
@@ -121,3 +137,46 @@ def test_vm_ssh_uses_iap_tunnel(fake_env):
     assert r.returncode == 0, r.stderr
     (call,) = [c for c in gcloud_calls(log) if "compute ssh" in c]
     assert "--tunnel-through-iap" in call and "--zone=asia-southeast2-a" in call
+
+
+def test_restore_test_writes_verification_report_and_deletes_temp_instance(fake_env, tmp_path):
+    env, log = fake_env
+    report = tmp_path / "restore.md"
+    r = run_script("sql-restore-test.sh", env={**env, "REPORT": str(report), "PROXY_WAIT": "0"})
+    assert r.returncode == 0, r.stderr
+    calls = gcloud_calls(log)
+    (create,) = [c for c in calls if "sql instances create" in c]
+    temp = create.split()[4]
+    assert temp.startswith("labtrack-restore-test-")
+    assert any(c.startswith(f"gcloud sql instances delete {temp} ") for c in calls)
+    assert not any("sql instances delete labtrack-db-" in c for c in calls)  # never the source
+    text = report.read_text(encoding="utf-8")
+    assert "| Hasil | **LULUS** |" in text
+    assert "ID 1761328800000, jendela backup 2026-10-24T18:00:00Z" in text
+    assert "| students | 14 | 12 | OK |" in text
+
+
+def test_vm_patch_records_change_log(fake_env, tmp_path):
+    env, log = fake_env
+    change_log = tmp_path / "change-log.md"
+    r = run_script("vm-patch.sh", "--snapshot", env={**env, "CHANGE_LOG": str(change_log)})
+    assert r.returncode == 0, r.stderr
+    calls = gcloud_calls(log)
+    snap = next(i for i, c in enumerate(calls) if "disks snapshot" in c)
+    upgrade = next(i for i, c in enumerate(calls) if "apt-get -y" in c)
+    assert snap < upgrade  # backup before the change
+    rows = [line for line in change_log.read_text(encoding="utf-8").splitlines() if "labtrack-ops |" in line]
+    assert len(rows) == 1
+    assert "snapshot labtrack-ops-manual-prepatch-" in rows[0]
+    assert "active,active NO_REBOOT_REQUIRED" in rows[0]
+
+
+def test_vm_report_saves_output(fake_env, tmp_path):
+    env, log = fake_env
+    out = tmp_path / "vm.txt"
+    r = run_script("vm-report.sh", env={**env, "OUT": str(out)})
+    assert r.returncode == 0, r.stderr
+    assert any("compute instances describe labtrack-ops" in c for c in gcloud_calls(log))
+    assert any("compute ssh labtrack-ops" in c and "--tunnel-through-iap" in c for c in gcloud_calls(log))
+    assert "lscpu" in log.read_text()  # the remote script spans several log lines
+    assert "LabTrack VM provisioning report" in out.read_text(encoding="utf-8")

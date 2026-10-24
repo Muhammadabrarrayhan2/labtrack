@@ -96,7 +96,7 @@ BASE_URL=http://localhost:8080 ADMIN_PASSWORD=AdminPass123 python scripts/seed_d
 pytest -q --cov=app --cov-report=term-missing
 ```
 
-52 tests: the original 19 API tests (auth and role checks, validation, conflicts, idempotent enrollment and attendance upserts, attendance summary math, PDF upload validation, signed download, grading), 11 tests that every error response carries a `request_id` matching the `X-Request-ID` header and the log line, 13 tests for the SLA report math on mocked Cloud Monitoring time series, and 9 tests for the ops scripts with a fake `gcloud` on `PATH`. Coverage of `app/` is about 94%. CI also runs `shellcheck` on `scripts/ops` and `terraform fmt -check` and `validate`.
+65 tests: the original 19 API tests, 11 tests that every error response carries a `request_id` matching the `X-Request-ID` header and the log line, 3 end-to-end integration check tests, 17 tests for the SLA report math (request-based and uptime-based availability) on mocked Cloud Monitoring time series, 3 tests for the stress profile, and 12 tests for the ops scripts with fake `gcloud`, `psql` and `cloud-sql-proxy` binaries. Coverage of `app/` is about 94%. Set `TEST_DATABASE_URL` to run the API tests against PostgreSQL; CI does this with a PostgreSQL 16 service container (job `test-postgres`). CI also runs `shellcheck` and `terraform fmt -check` / `validate`.
 
 ## Load test
 
@@ -146,13 +146,18 @@ Routine scripts live in `scripts/ops/`. Each reads `PROJECT_ID` and `REGION` fro
 | `rotate-secret.sh` | PaaS | New JWT secret version and a forced new revision |
 | `sql-start-stop.sh` | PaaS | Start, stop or show the Cloud SQL instance |
 | `sql-backup-now.sh` | PaaS | On-demand Cloud SQL backup |
-| `sql-restore-test.sh` | PaaS | Restore the latest backup into a temporary instance, compare row counts, delete it |
+| `sql-restore-test.sh` | PaaS | Restore the latest backup into a temporary instance, compare row counts, write a restore verification report, delete it |
 | `vm-start-stop.sh` | IaaS | Start, stop or show the ops VM |
 | `vm-ssh.sh` | IaaS | SSH through IAP, optionally run one command |
 | `vm-snapshot-now.sh` | IaaS | Manual boot disk snapshot |
-| `vm-patch.sh` | IaaS | `apt` upgrade over IAP, optional snapshot first and reboot |
+| `vm-patch.sh` | IaaS | `apt` upgrade over IAP, optional snapshot first and reboot; appends to a change log |
+| `vm-report.sh` | IaaS | VM provisioning report: config, CPU, memory, disk, network, gateway, NAT egress, services |
 
-`scripts/sla_report.py` writes the monthly SLA report to `docs/laporan-sla/YYYY-MM.md` from Cloud Monitoring data.
+`scripts/sla_report.py` writes the monthly SLA report to `docs/laporan-sla/YYYY-MM.md` from Cloud Monitoring data, with request-based availability, p95 latency and, given `--uptime-check-id`, time-based availability from the uptime check.
+
+`scripts/api_integration_check.py` runs a 9-step end-to-end check (health, login, create, read back, update, 409, 401, delete, 404) against any running instance and writes a Markdown report.
+
+For a stress test, set `LOAD_SHAPE=stress`: 100, 150, 200, 250 and 300 users for two minutes each, then 20 users to watch recovery (`scripts/loadtest/stages.py`).
 
 ## Project structure
 
@@ -184,8 +189,10 @@ scripts/
   loadtest/          Locust scenario
   ops/               Routine operations scripts (PaaS and IaaS)
   sla_report.py      Monthly SLA report from Cloud Monitoring
+  api_integration_check.py  End-to-end check against a running API
 docs/                Certification portfolio in Indonesian, see below
   bukti/             Evidence folders per competency unit, with screenshot checklists
+  bukti/lokal/       Real outputs from the local docker compose stack (integration, load, restore, incident)
   laporan-sla/       Generated monthly SLA reports
 tests/               pytest suite
 ```
@@ -202,8 +209,9 @@ Repositori ini disusun sebagai bukti kompetensi (APL02) untuk sertifikasi BNSP C
 | J.631120.013.01 Menjalankan aktivitas rutin pada IaaS, PaaS, dan SaaS | [04-aktivitas-rutin-iaas-paas-saas.md](docs/04-aktivitas-rutin-iaas-paas-saas.md) |
 | J.631120.014.01 Memantau sarana dan prasarana sesuai SLA | [05-sla-dan-pemantauan.md](docs/05-sla-dan-pemantauan.md) |
 | J.631120.015.01 Memberikan dukungan teknis dan report next layer | [06-sop-dukungan-teknis.md](docs/06-sop-dukungan-teknis.md) |
+| Pemetaan ke modul pelatihan (40 slide, lab 1 sampai 4, bukti minimum) | [07-kesesuaian-modul-pelatihan.md](docs/07-kesesuaian-modul-pelatihan.md) |
 
-Langkah deploy dan pengambilan bukti: [docs/PANDUAN-DEPLOYMENT.md](docs/PANDUAN-DEPLOYMENT.md).
+Langkah deploy dan pengambilan bukti: [docs/PANDUAN-DEPLOYMENT.md](docs/PANDUAN-DEPLOYMENT.md). Bukti nyata dari lingkungan lokal (uji integrasi 9/9 lulus, uji beban 2.953 permintaan tanpa galat, *backup-restore-verify* 7/7 tabel identik, simulasi insiden pulih sekitar 39 detik) ada di [docs/bukti/lokal/](docs/bukti/lokal/).
 
 ## Known limitations
 

@@ -141,3 +141,56 @@ Isi satu baris setiap kali aktivitas dijalankan. Tempel keluaran terminal ke ber
 | > [ISI SETELAH DEPLOY] | S2 | Proteksi cabang main | GitHub Settings > Branches | | B-013-12 | |
 | > [ISI SETELAH DEPLOY] | U1 | Provisioning akun asisten | `POST /auth/users` | | B-013-13 | |
 | > [ISI SETELAH DEPLOY] | U3 | Penonaktifan akun | `UPDATE users SET is_active=false ...` | | B-013-14 | |
+| > [ISI SETELAH DEPLOY] | I10 | Laporan provisioning VM | `scripts/ops/vm-report.sh` | | B-013-18 | |
+
+## 5. Jenis backup dan penerapannya
+
+| Jenis | Pengertian | Kelebihan dan kekurangan | Penerapan di LabTrack |
+|---|---|---|---|
+| *Full* | Menyalin semua data dalam cakupan | Pemulihan paling sederhana (satu berkas); paling boros ruang dan waktu | `pg_dump` malam hari oleh VM `labtrack-ops` adalah backup logis penuh setiap kali; uji lokal menghasilkan berkas 27 KB untuk data demo (`docs/bukti/lokal/backup-restore-verify.txt`) |
+| *Incremental* | Menyalin perubahan sejak backup terakhir (jenis apa pun) | Hemat ruang; pemulihan membutuhkan seluruh rantai backup | Snapshot disk Compute Engine bersifat inkremental: snapshot pertama penuh, berikutnya hanya blok yang berubah, dan Google mengelola rantainya sehingga setiap snapshot tetap dapat dipulihkan sendiri. Backup otomatis Cloud SQL juga disimpan secara inkremental oleh Google |
+| *Differential* | Menyalin perubahan sejak backup penuh terakhir | Pemulihan cukup dengan backup penuh dan satu *differential*; ukuran bertambah setiap hari sampai backup penuh berikutnya | Tidak dipakai. Padanannya untuk PostgreSQL adalah *point-in-time recovery* dengan WAL, yang dapat diaktifkan pada Cloud SQL bila RPO perlu diturunkan di bawah 24 jam |
+
+Strategi tiga lapis LabTrack:
+
+1. **Backup otomatis Cloud SQL** harian pukul 01.00 WIB, retensi 7 (dikelola Google, inkremental).
+2. **`pg_dump`** harian pukul 02.30 WIB ke bucket terpisah, retensi 30 hari (penuh, portabel ke PostgreSQL mana pun).
+3. **Snapshot boot disk VM** harian pukul 03.00 WIB, retensi 7 hari (inkremental), ditambah snapshot manual sebelum *patching*.
+
+Sesuai prinsip modul pelatihan, frekuensi backup saja belum menjamin RPO. Backup baru dianggap sah setelah lulus siklus *backup, restore, verify*:
+
+| Tahap | Pelaksanaan | Keluaran |
+|---|---|---|
+| Tentukan data dan metode | Basis data `labtrack`; backup Cloud SQL terbaru berstatus `SUCCESSFUL` | Bagian awal keluaran skrip |
+| Jalankan backup dan catat log | `scripts/ops/sql-backup-now.sh` | Log P8 |
+| *Restore* ke lingkungan uji | `scripts/ops/sql-restore-test.sh` membuat instans sementara dan memulihkan backup ke sana, tanpa menyentuh produksi | Instans `labtrack-restore-test-*` |
+| Periksa data | Jumlah baris tujuh tabel dibandingkan dengan produksi | Tabel perbandingan |
+| Tutup dengan laporan | Skrip menulis *restore verification report* lalu menghapus instans sementara | `docs/bukti/013/restore-verification-<tanggal>.md` |
+
+Siklus ini sudah dijalankan secara lokal dengan `pg_dump` dan `pg_restore` ke basis data uji terpisah: ketujuh tabel identik (1 pengguna, 12 mahasiswa, 1 mata kuliah, 12 *enrollment*, 4 sesi, 48 kehadiran, 41 laporan), dan rekap kehadiran dapat dihitung dari data hasil *restore*. Keluaran lengkapnya ada di `docs/bukti/lokal/backup-restore-verify.txt`.
+
+## 6. Prosedur perubahan terkontrol (*patching*, *update*, *upgrade*)
+
+| Tahap | Pelaksanaan pada VM `labtrack-ops` | Pelaksanaan pada Cloud Run (deploy versi baru) |
+|---|---|---|
+| 1. Identifikasi perubahan dan risiko | `vm-patch.sh` menampilkan `apt list --upgradable`; risiko: layanan *restart*, kemungkinan perlu *reboot* kernel | *Pull request* di GitHub menampilkan *diff*; risiko dinilai saat *review* |
+| 2. Backup dan rencana pemulihan | `--snapshot` membuat snapshot boot disk sebelum perubahan; pemulihan dengan membuat disk dari snapshot | Revisi lama tetap tersedia; pemulihan dengan `scripts/ops/rollback.sh`. Untuk perubahan skema, `sql-backup-now.sh` dahulu |
+| 3. Uji sebelum produksi | Paket Debian berasal dari kanal stabil yang sudah diuji distribusi; untuk perubahan besar, uji dulu pada VM dari snapshot | Job CI `test`, `test-postgres`, dan `terraform` wajib lulus sebelum job `deploy` berjalan |
+| 4. Terapkan | `apt-get upgrade` melalui IAP | Job `deploy` membuat revisi baru |
+| 5. Uji pasca-pemeliharaan dan *change log* | `vm-patch.sh` memeriksa `cloud-sql-proxy` dan `google-cloud-ops-agent` aktif serta penanda *reboot*, lalu menambahkan satu baris ke `docs/bukti/013/change-log.md` | *Smoke test* `/health` di pipeline; riwayat commit dan *run* GitHub Actions menjadi *change log* |
+
+Format *change log* yang ditulis otomatis:
+
+| Waktu (WIB) | VM | Perubahan | Risiko | Backup sebelum perubahan | Uji pasca-pemeliharaan | Pelaksana |
+|---|---|---|---|---|---|---|
+| > [ISI SETELAH DEPLOY: dihasilkan oleh vm-patch.sh] | | | | | | |
+
+## 7. Laporan provisioning VM
+
+`scripts/ops/vm-report.sh` merekam konfigurasi VM dari API Compute Engine (tipe mesin, zona, disk, IP internal, tidak adanya IP eksternal, service account, Shielded VM) dan, dari dalam VM melalui IAP, hasil `lscpu`, `free -h`, `df -h /`, `ip -br addr`, `ip route`, `ping` ke *gateway*, akses keluar melalui Cloud NAT, serta status layanan. Baris `Hypervisor vendor: KVM` pada keluaran `lscpu` menunjukkan VM berjalan di atas hypervisor KVM, setara dengan pemeriksaan `/dev/kvm` di lab Proxmox modul.
+
+```bash
+scripts/ops/vm-report.sh     # disimpan ke docs/bukti/013/vm-provisioning-<tanggal>.txt
+```
+
+> [BUKTI: B-013-18, berkas docs/bukti/013/vm-provisioning-<tanggal>.txt hasil skrip]

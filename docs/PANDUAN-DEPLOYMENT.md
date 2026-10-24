@@ -119,7 +119,12 @@ export ADMIN_PASSWORD=$(gcloud secrets versions access latest --secret=labtrack-
 cd ../..
 pip install httpx
 BASE_URL=$API python scripts/seed_demo.py
+
+# Uji integrasi API + Cloud SQL (bukti minimum #2 modul), B-002-09
+BASE_URL=$API python scripts/api_integration_check.py --out docs/bukti/002/integration-report.md
 ```
+
+Hasil yang diharapkan: "9 dari 9 pemeriksaan lulus". Bandingkan dengan hasil lokal di `docs/bukti/lokal/integration-report.md`.
 
 Di Swagger: klik **Authorize**, login `admin@labtrack.dev` dengan password tadi, lalu coba:
 
@@ -198,6 +203,15 @@ locust -f scripts/loadtest/locustfile.py --host "$API" \
 
 📸 B-003-01 ringkasan terminal. Segera buka dasbor dan ambil B-003-02 dan B-003-03 (rentang 15 menit terakhir), juga B-001-01. Isi tabel hasil di `docs/03-kebutuhan-perangkat-keras.md` bagian 5.2 dari `docs/bukti/003/locust_stats.csv`, lalu tulis analisis di bagian 5.3.
 
+Uji *stress* bertahap (12 menit, 100 sampai 300 pengguna lalu pemulihan), jalankan terpisah di luar jam praktikum:
+
+```bash
+LOAD_SHAPE=stress locust -f scripts/loadtest/locustfile.py --host "$API" --headless \
+  --csv docs/bukti/003/stress --html docs/bukti/003/stress-report.html
+```
+
+📸 B-003-07. Isi tabel di `docs/03-kebutuhan-perangkat-keras.md` bagian 6 dari `docs/bukti/003/stress_stats_history.csv`.
+
 ## 11. VM operasional `labtrack-ops` (IaaS, unit 013)
 
 Tambahkan ke `terraform.tfvars`:
@@ -227,7 +241,13 @@ scripts/ops/vm-ssh.sh "sudo systemctl start labtrack-backup.service && sudo jour
 gcloud storage ls -l gs://$PROJECT_ID-labtrack-backups/backups/
 ```
 
-📸 B-013-08, B-013-10, B-013-15, B-013-16, B-013-17. Snapshot terjadwal pertama terbentuk setelah pukul 03.00 WIB.
+Laporan provisioning VM (bukti minimum #1 modul):
+
+```bash
+scripts/ops/vm-report.sh     # disimpan ke docs/bukti/013/vm-provisioning-<tanggal>.txt
+```
+
+📸 B-013-08, B-013-10, B-013-15, B-013-16, B-013-17, B-013-18, dan B-014-06 (tab Observability VM). Snapshot terjadwal pertama terbentuk setelah pukul 03.00 WIB.
 
 ## 12. Aktivitas rutin (unit 013)
 
@@ -276,7 +296,8 @@ Simulasi ini memakai anggaran galat SLO ketersediaan; hal tersebut wajar dan aka
 
 ```bash
 gcloud auth application-default login
-python scripts/sla_report.py --project "$PROJECT_ID" --start 2026-10-01 --end 2026-10-26
+python scripts/sla_report.py --project "$PROJECT_ID" --start 2026-10-01 --end 2026-10-26 \
+  --uptime-check-id "$(terraform -chdir=infra/terraform output -raw uptime_check_id)"
 ```
 
 📸 B-014-05. Lengkapi bagian insiden dan tindak lanjut di berkas yang dihasilkan di `docs/laporan-sla/`, lalu salin angkanya ke templat di `docs/05-sla-dan-pemantauan.md` bagian 6.
@@ -300,15 +321,17 @@ cd infra/terraform && terraform destroy
 
 ## Checklist bukti untuk APL02
 
-Pemetaan lengkap per elemen ada di [00-PEMETAAN-UNIT-KOMPETENSI.md](00-PEMETAAN-UNIT-KOMPETENSI.md). Daftar tangkapan layar per unit ada di `docs/bukti/<unit>/README.md`.
+Pemetaan lengkap per elemen ada di [00-PEMETAAN-UNIT-KOMPETENSI.md](00-PEMETAAN-UNIT-KOMPETENSI.md), dan pemetaan ke modul pelatihan (slide dan lab) di [07-kesesuaian-modul-pelatihan.md](07-kesesuaian-modul-pelatihan.md). Daftar tangkapan layar per unit ada di `docs/bukti/<unit>/README.md`. Bukti lokal yang sudah terisi ada di `docs/bukti/lokal/`.
+
+`vm-patch.sh` (langkah 12) menulis *change log* ke `docs/bukti/013/change-log.md` (B-013-19), dan `sql-restore-test.sh` (langkah 13) menulis *restore verification report* ke `docs/bukti/013/restore-verification-<tanggal>.md` (B-013-20).
 
 | Unit | Dokumen utama | Bukti eksekusi | Langkah panduan |
 |---|---|---|---|
 | J.631120.001.01 Terminologi dan konsep | `docs/01-konsep-cloud-computing.md` | B-001-01 sampai B-001-05 | 5, 6, 10 |
-| J.631120.002.01 Teknologi cloud | `docs/02-teknologi-cloud.md` | B-002-01 sampai B-002-08 | 4, 5, 7, 9 |
-| J.631120.003.01 Perangkat keras | `docs/03-kebutuhan-perangkat-keras.md` | B-003-01 sampai B-003-06, hasil Locust | 10 |
-| J.631120.013.01 Aktivitas rutin IaaS, PaaS, SaaS | `docs/04-aktivitas-rutin-iaas-paas-saas.md` | B-013-01 sampai B-013-17, log di `docs/bukti/013/log/` | 11, 12, 13 |
-| J.631120.014.01 Pemantauan sesuai SLA | `docs/05-sla-dan-pemantauan.md` | B-014-01 sampai B-014-05, `docs/laporan-sla/` | 8, 15 |
+| J.631120.002.01 Teknologi cloud | `docs/02-teknologi-cloud.md` | B-002-01 sampai B-002-09 | 4, 5, 7, 9 |
+| J.631120.003.01 Perangkat keras | `docs/03-kebutuhan-perangkat-keras.md` | B-003-01 sampai B-003-07, hasil Locust | 10 |
+| J.631120.013.01 Aktivitas rutin IaaS, PaaS, SaaS | `docs/04-aktivitas-rutin-iaas-paas-saas.md` | B-013-01 sampai B-013-20, log di `docs/bukti/013/log/` | 11, 12, 13 |
+| J.631120.014.01 Pemantauan sesuai SLA | `docs/05-sla-dan-pemantauan.md` | B-014-01 sampai B-014-06, `docs/laporan-sla/` | 8, 15 |
 | J.631120.015.01 Dukungan teknis dan eskalasi | `docs/06-sop-dukungan-teknis.md` | B-015-01 sampai B-015-08 | 14 |
 
 Checklist sebelum asesmen:

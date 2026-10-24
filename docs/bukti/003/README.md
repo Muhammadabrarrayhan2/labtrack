@@ -10,3 +10,4 @@ Berkas `locust_stats.csv`, `locust_stats_history.csv`, `locust_failures.csv`, da
 | B-003-04 | Spesifikasi kontainer Cloud Run: 1 vCPU, 512 MiB, konkurensi 40, maksimum 3 instans | `gcloud run services describe labtrack-api --region=asia-southeast2`, atau Cloud Run > labtrack-api > Revisions | [ ] |
 | B-003-05 | Konfigurasi Cloud SQL: db-f1-micro, SSD 10 GB, backup harian | SQL > labtrack-db-xxxx > Overview | [ ] |
 | B-003-06 | Laporan HTML Locust | Berkas `docs/bukti/003/locust-report.html` | [ ] |
+| B-003-07 | Uji stress bertahap 100 sampai 300 VU lalu pemulihan: grafik p95 dan jumlah pengguna di laporan HTML, grafik instans di dasbor | `LOAD_SHAPE=stress locust ... --csv docs/bukti/003/stress --html docs/bukti/003/stress-report.html` | [ ] |

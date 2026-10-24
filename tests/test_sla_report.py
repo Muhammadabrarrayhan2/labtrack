@@ -161,3 +161,53 @@ def test_main_writes_report_with_mocked_client(tmp_path, monkeypatch):
     assert calls[0]["name"] == "projects/labtrack-123"
     assert 'resource.label."service_name"="labtrack-api"' in calls[0]["filter"]
     assert calls[0]["interval"].start_time.timestamp() == OCT_START.timestamp()
+
+
+def uptime_ts(*fractions: float):
+    return NS(metric=NS(labels={}), points=[NS(value=NS(double_value=f)) for f in fractions])
+
+
+def test_uptime_windows_counts_down_when_most_regions_fail():
+    # 1.0 all regions pass, 0.67 one of three failed (still up), 0.0 and 0.33 are down
+    assert sla.uptime_windows([uptime_ts(1.0, 0.67, 0.0, 0.33, 1.0)]) == (5, 2)
+
+
+def test_time_based_availability_and_downtime_minutes():
+    # 30 days of 5 minute windows = 8,640 windows; 9 down windows = 45 minutes
+    # gives 99.8958%, the worked example in the training module (slide 28)
+    fractions = [1.0] * 8631 + [0.0] * 9
+    r = sla.evaluate([], [], OCT_START, OCT_END, uptime_series=[uptime_ts(*fractions)])
+    assert r.uptime_windows == 8640 and r.downtime_windows == 9
+    assert r.downtime_min == 45
+    assert r.uptime_availability == pytest.approx(0.998958, abs=1e-6)
+    md = sla.render_markdown(r, "p", "labtrack-api")
+    assert "| Waktu henti | 45 menit |" in md
+    assert "99.896%" in md
+
+
+def test_uptime_section_without_check_id_reports_no_data():
+    r = sla.evaluate([count_ts("2xx", 10)], [], OCT_START, OCT_END)
+    assert r.uptime_availability is None
+    assert "| Jendela teramati | 0 |" in sla.render_markdown(r, "p", "labtrack-api")
+
+
+def test_main_queries_uptime_check_when_id_given(tmp_path, monkeypatch):
+    monitoring_v3 = pytest.importorskip("google.cloud.monitoring_v3")
+    filters = []
+
+    class FakeClient:
+        def list_time_series(self, request):
+            filters.append(request["filter"])
+            if "check_passed" in request["filter"]:
+                assert request["aggregation"].alignment_period.seconds == 300
+                return [uptime_ts(1.0, 1.0, 0.0, 1.0)]
+            if "request_count" in request["filter"]:
+                return [count_ts("2xx", 100)]
+            return []
+
+    monkeypatch.setattr(monitoring_v3, "MetricServiceClient", FakeClient)
+    args = ["--project", "p", "--month", "2026-10", "--out-dir", str(tmp_path), "--uptime-check-id", "labtrack-xyz"]
+    assert sla.main(args) == 0
+    assert any('metric.label."check_id"="labtrack-xyz"' in f for f in filters)
+    report = (tmp_path / "2026-10.md").read_text(encoding="utf-8")
+    assert "| Waktu henti | 5 menit |" in report

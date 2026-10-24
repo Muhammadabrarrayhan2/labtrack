@@ -113,7 +113,49 @@ Kesimpulan: pada Cloud Run dan Cloud SQL, tanggung jawab saya terpusat pada kode
 | 32 | NAT | *Network Address Translation*, memungkinkan VM tanpa IP publik mengakses internet keluar | `google_compute_router_nat.ops` |
 | 33 | IAP | *Identity-Aware Proxy*, akses SSH ke VM melalui identitas Google tanpa IP publik | Firewall `35.235.240.0/20` port 22 |
 
-## 7. Referensi
+## 7. Arsitektur berlapis
+
+Arsitektur komputasi awan umumnya digambarkan dalam lima lapisan. Tabel berikut menempatkan komponen LabTrack pada setiap lapisan.
+
+| Lapisan | Isi | Komponen LabTrack | Pengelola |
+|---|---|---|---|
+| Pengguna (*cloud consumer*) | Pengguna akhir dan perangkatnya | Asisten dan koordinator laboratorium dengan peramban, Swagger UI | Pengguna |
+| Layanan (*cloud service*) | IaaS, PaaS, SaaS | Compute Engine (IaaS), Cloud Run dan Cloud SQL (PaaS), LabTrack API (SaaS) | Saya dan Google |
+| Manajemen (*cloud management*) | *Provisioning*, pemantauan, keamanan | Terraform, Cloud Monitoring, IAM, Secret Manager, GitHub Actions | Saya |
+| Virtualisasi | Hypervisor, VM, jaringan virtual | Hypervisor KVM Compute Engine, *sandbox* Cloud Run, VPC | Google |
+| Fisik | Server, *storage*, jaringan | Pusat data region `asia-southeast2` | Google |
+
+## 8. *Scaling* horizontal dan vertikal, serta *multitenancy*
+
+| Jenis | Pengertian | Penerapan di LabTrack | Cara mengubah |
+|---|---|---|---|
+| Horizontal (*scale-out* / *scale-in*) | Menambah atau mengurangi jumlah instans | Cloud Run menambah instans dari 0 sampai 3 secara otomatis; aplikasi tidak menyimpan *state* di instans sehingga dapat digandakan | Otomatis; batas diubah dengan `scripts/ops/scale.sh <min> <max>` |
+| Vertikal (*scale-up* / *scale-down*) | Menambah atau mengurangi CPU dan RAM per server | Cloud SQL tidak dapat digandakan untuk penulisan, sehingga kapasitasnya dinaikkan secara vertikal dengan mengganti tier (`db-f1-micro` ke `db-g1-small` atau tier khusus). VM `labtrack-ops` diubah melalui `ops_vm_machine_type` | Ubah variabel `db_tier` atau `ops_vm_machine_type` lalu `terraform apply`. Penggantian tier Cloud SQL menyebabkan *restart* singkat, sehingga dilakukan di jendela pemeliharaan |
+
+*Multitenancy* berarti banyak penyewa (*tenant*) berbagi infrastruktur yang sama dengan isolasi di antara mereka. Pada LabTrack, kontainer berjalan di infrastruktur Cloud Run yang juga dipakai pelanggan Google lain dan diisolasi dengan *sandbox*; Cloud SQL `db-f1-micro` memakai vCPU bersama. Di tingkat aplikasi, LabTrack saat ini melayani satu laboratorium (*single-tenant*). Bila dipakai beberapa laboratorium, isolasi dapat dicapai dengan kolom penanda laboratorium pada setiap tabel atau dengan satu basis data per laboratorium.
+
+## 9. Topologi jaringan
+
+```mermaid
+flowchart TB
+    u[Peramban pengguna] -->|HTTPS 443| gfe[Google Front End: TLS, load balancing]
+    gfe --> run[Cloud Run labtrack-api]
+    run -->|soket Unix, Cloud SQL Auth Proxy, TLS| sql[(Cloud SQL, IP publik tanpa authorized networks)]
+    run -->|HTTPS API| gcs[(Cloud Storage)]
+    eng[Pengelola] -->|SSH melalui IAP, 35.235.240.0/20 port 22| fw[Firewall VPC]
+    fw --> vm[VM labtrack-ops 10.10.0.0/24, tanpa IP publik]
+    vm -->|keluar| nat[Cloud Router dan Cloud NAT] --> net((Internet))
+    vm -->|Private Google Access| gapi[Google APIs]
+```
+
+| Komponen jaringan modul | Padanan di LabTrack |
+|---|---|
+| Router dan firewall | Google Front End untuk trafik masuk API; aturan firewall VPC `labtrack-ops-allow-iap-ssh`; Cloud Router untuk NAT |
+| Switch atau *virtual bridge* | Jaringan virtual VPC `labtrack-ops-vpc` dan subnet `10.10.0.0/24` |
+| Host virtualisasi | Host Compute Engine yang dikelola Google |
+| VM aplikasi dan VM basis data | Cloud Run (aplikasi) dan Cloud SQL (basis data, terkelola); VM `labtrack-ops` untuk tugas operasional |
+
+## 10. Referensi
 
 1. Mell, P. dan Grance, T. (2011). *The NIST Definition of Cloud Computing*. NIST Special Publication 800-145.
 2. Google Cloud. *Shared responsibilities and shared fate on Google Cloud*. Dokumentasi Google Cloud Architecture Center.

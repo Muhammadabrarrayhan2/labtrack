@@ -10,3 +10,4 @@
 | B-002-06 | Provider Workload Identity dengan *attribute condition* repositori | IAM & Admin > Workload Identity Federation > labtrack-gh-xxxx > github | [ ] |
 | B-002-07 | Run GitHub Actions hijau: job test (shellcheck, pytest), terraform (fmt, validate), deploy | GitHub > Actions > run terakhir di main | [ ] |
 | B-002-08 | Ringkasan `terraform plan` ("Plan: N to add") | `terraform plan -out=tfplan` | [ ] |
+| B-002-09 | Laporan uji integrasi terhadap API di Cloud Run dan Cloud SQL (9 pemeriksaan) | `python scripts/api_integration_check.py --out docs/bukti/002/integration-report.md` dengan `BASE_URL` dan `ADMIN_PASSWORD` | [ ] |

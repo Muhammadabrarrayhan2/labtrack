@@ -1,0 +1,25 @@
+Lingkungan: lokal (docker compose, PostgreSQL 16), bukan Cloud SQL
+== 2026-10-24 10:27:37 WIB  1. Backup penuh (pg_dump format custom) dari database labtrack
+-rw-r--r--    1 root     root         27293 Oct 24 03:27 /tmp/labtrack.dump
+== 2026-10-24 10:27:38 WIB  2. Restore ke database uji terpisah labtrack_restore
+pg_restore selesai tanpa galat
+== 2026-10-24 10:27:38 WIB  3. Verifikasi jumlah baris
+tabel                  produksi    restore status
+users                         1          1 OK
+students                     12         12 OK
+courses                       1          1 OK
+enrollments                  12         12 OK
+practicum_sessions            4          4 OK
+attendances                  48         48 OK
+lab_reports                  41         41 OK
+== 2026-10-24 10:27:44 WIB  4. Verifikasi isi data: rekap hadir (present+late) per mahasiswa di database hasil restore
+    nim     |   full_name    | hadir 
+------------+----------------+-------
+ 1032230101 | Aditya Nugroho |     1
+ 1032230102 | Bella Safitri  |     4
+ 1032230103 | Cahyo Wibowo   |     3
+ 1032230104 | Dina Maharani  |     4
+ 1032230105 | Eko Saputra    |     3
+(5 rows)
+
+== 2026-10-24 10:27:45 WIB  5. Database uji labtrack_restore dihapus

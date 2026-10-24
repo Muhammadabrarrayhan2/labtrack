@@ -47,3 +47,8 @@ output "ops_vm" {
     ssh_command   = "gcloud compute ssh ${google_compute_instance.ops[0].name} --zone=${google_compute_instance.ops[0].zone} --tunnel-through-iap"
   } : null
 }
+
+output "uptime_check_id" {
+  description = "Pass to scripts/sla_report.py --uptime-check-id for time-based availability"
+  value       = google_monitoring_uptime_check_config.health.uptime_check_id
+}

@@ -12,16 +12,26 @@ Usage (headless, 50 users, spawn 5/s, 5 minutes, CSV output):
         --headless -u 50 -r 5 -t 5m \
         --csv docs/bukti/003/locust --html docs/bukti/003/locust-report.html
 
+Stress test (stepped 100 -> 300 users, then recovery, 12 minutes; see stages.py):
+    LOAD_SHAPE=stress LABTRACK_PASSWORD=... locust -f scripts/loadtest/locustfile.py \
+        --host https://labtrack-api-xxxx.a.run.app --headless \
+        --csv docs/bukti/003/stress --html docs/bukti/003/stress-report.html
+
 Environment:
     LABTRACK_EMAIL     login email (default admin@labtrack.dev)
     LABTRACK_PASSWORD  login password (required)
     COURSE_ID          course used for summary and attendance (default 1)
     SESSION_ID         session that receives attendance (default 1)
+    LOAD_SHAPE         "stress" enables the stepped profile; unset means -u/-r/-t from the CLI
 """
 
 import os
+import sys
 
-from locust import HttpUser, between, task
+from locust import HttpUser, LoadTestShape, between, task
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from stages import STRESS_STAGES, target_at  # noqa: E402
 
 EMAIL = os.environ.get("LABTRACK_EMAIL", "admin@labtrack.dev")
 PASSWORD = os.environ.get("LABTRACK_PASSWORD", "")
@@ -78,3 +88,12 @@ class LabAssistant(HttpUser):
     @task(1)
     def health(self) -> None:
         self.client.get("/health", name="GET /health")
+
+
+if os.environ.get("LOAD_SHAPE") == "stress":
+
+    class StressShape(LoadTestShape):
+        """Stepped profile from stages.py. Locust picks up a LoadTestShape automatically."""
+
+        def tick(self):
+            return target_at(self.get_run_time(), STRESS_STAGES)

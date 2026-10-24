@@ -131,6 +131,22 @@ def fraction_below(options, counts: list[int], threshold: float) -> float | None
     return fast / total
 
 
+def uptime_windows(series, down_below: float = 0.5) -> tuple[int, int]:
+    """Count uptime-check windows and the ones where the service was down.
+
+    Each point is the mean fraction of passing checker regions in one window (ALIGN_FRACTION_TRUE
+    then REDUCE_MEAN). A window counts as down when fewer than half of the regions passed,
+    matching the uptime alert, which fires when more than one region fails.
+    """
+    total = down = 0
+    for ts in series:
+        for p in ts.points:
+            total += 1
+            if p.value.double_value < down_below:
+                down += 1
+    return total, down
+
+
 @dataclass
 class SlaResult:
     start: datetime
@@ -145,6 +161,20 @@ class SlaResult:
     budget_requests: float
     budget_consumed: float | None
     allowed_downtime_min: float
+    uptime_windows: int = 0
+    downtime_windows: int = 0
+    window_min: float = 5.0
+
+    @property
+    def uptime_availability(self) -> float | None:
+        """Time-based availability from the uptime check: (period - downtime) / period."""
+        if not self.uptime_windows:
+            return None
+        return 1 - self.downtime_windows / self.uptime_windows
+
+    @property
+    def downtime_min(self) -> float:
+        return self.downtime_windows * self.window_min
 
     @property
     def availability_met(self) -> bool | None:
@@ -168,8 +198,11 @@ def evaluate(
     end: datetime,
     availability_target: float = 0.995,
     latency_target_ms: float = 800.0,
+    uptime_series=(),
+    window_min: float = 5.0,
 ) -> SlaResult:
     total, bad = count_requests(count_series)
+    windows, down = uptime_windows(uptime_series)
     options, counts = merge_distributions(latency_series)
     allowed_fraction = 1 - availability_target
     budget = total * allowed_fraction
@@ -186,6 +219,9 @@ def evaluate(
         budget_requests=budget,
         budget_consumed=(bad / budget) if budget else None,
         allowed_downtime_min=(end - start).total_seconds() / 60 * allowed_fraction,
+        uptime_windows=windows,
+        downtime_windows=down,
+        window_min=window_min,
     )
 
 
@@ -230,6 +266,18 @@ def render_markdown(r: SlaResult, project: str, service: str) -> str:
         f"| Anggaran galat terpakai | {_pct(r.budget_consumed, 1)} |",
         f"| Batas waktu henti setara (berbasis waktu) | {r.allowed_downtime_min:.1f} menit |",
         "",
+        "## Ketersediaan berbasis waktu (uptime check /health)",
+        "",
+        "Pelengkap SLI berbasis permintaan. Satu jendela = "
+        f"{r.window_min:.0f} menit; jendela dihitung henti bila kurang dari separuh region pemeriksa lulus.",
+        "",
+        "| Besaran | Nilai |",
+        "|---|---|",
+        f"| Jendela teramati | {r.uptime_windows:,} |",
+        f"| Jendela henti | {r.downtime_windows:,} |",
+        f"| Waktu henti | {r.downtime_min:.0f} menit |",
+        f"| Ketersediaan = (waktu teramati - waktu henti) / waktu teramati | {_pct(r.uptime_availability)} |",
+        "",
         "## Insiden pada periode ini",
         "",
         "> [ISI MANUAL: daftar insiden dari GitHub Issues berlabel `insiden`, dengan durasi dan dampak terhadap SLI]",
@@ -245,7 +293,31 @@ def render_markdown(r: SlaResult, project: str, service: str) -> str:
 # ---------------------------------------------------------------------------
 # Cloud Monitoring access
 # ---------------------------------------------------------------------------
-def fetch_series(client, project: str, metric: str, service: str, start: datetime, end: datetime, group_by: list[str]):
+def run_filter(metric: str, service: str) -> str:
+    return (
+        f'metric.type="{metric}" AND resource.type="cloud_run_revision" '
+        f'AND resource.label."service_name"="{service}"'
+    )
+
+
+def uptime_filter(check_id: str) -> str:
+    return (
+        'metric.type="monitoring.googleapis.com/uptime_check/check_passed" '
+        f'AND resource.type="uptime_url" AND metric.label."check_id"="{check_id}"'
+    )
+
+
+def fetch_series(
+    client,
+    project: str,
+    filter_: str,
+    start: datetime,
+    end: datetime,
+    group_by: list[str],
+    aligner: str = "ALIGN_DELTA",
+    reducer: str = "REDUCE_SUM",
+    period_s: int = 3600,
+):
     from google.cloud import monitoring_v3
 
     interval = monitoring_v3.TimeInterval(
@@ -253,19 +325,16 @@ def fetch_series(client, project: str, metric: str, service: str, start: datetim
         end_time={"seconds": int(end.timestamp())},
     )
     aggregation = monitoring_v3.Aggregation(
-        alignment_period={"seconds": 3600},
-        per_series_aligner=monitoring_v3.Aggregation.Aligner.ALIGN_DELTA,
-        cross_series_reducer=monitoring_v3.Aggregation.Reducer.REDUCE_SUM,
+        alignment_period={"seconds": period_s},
+        per_series_aligner=monitoring_v3.Aggregation.Aligner[aligner],
+        cross_series_reducer=monitoring_v3.Aggregation.Reducer[reducer],
         group_by_fields=group_by,
     )
     return list(
         client.list_time_series(
             request={
                 "name": f"projects/{project}",
-                "filter": (
-                    f'metric.type="{metric}" AND resource.type="cloud_run_revision" '
-                    f'AND resource.label."service_name"="{service}"'
-                ),
+                "filter": filter_,
                 "interval": interval,
                 "view": monitoring_v3.ListTimeSeriesRequest.TimeSeriesView.FULL,
                 "aggregation": aggregation,
@@ -284,6 +353,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--availability-target", type=float, default=0.995)
     parser.add_argument("--latency-target-ms", type=float, default=800.0)
     parser.add_argument("--out-dir", default="docs/laporan-sla")
+    parser.add_argument(
+        "--uptime-check-id",
+        default=os.environ.get("UPTIME_CHECK_ID"),
+        help="Adds time-based availability (terraform output -raw uptime_check_id)",
+    )
     args = parser.parse_args(argv)
 
     if not args.project:
@@ -301,9 +375,19 @@ def main(argv: list[str] | None = None) -> int:
     from google.cloud import monitoring_v3
 
     client = monitoring_v3.MetricServiceClient()
-    counts = fetch_series(client, args.project, REQUEST_COUNT, args.service, start, end, ["metric.label.response_code_class"])
-    latencies = fetch_series(client, args.project, REQUEST_LATENCIES, args.service, start, end, [])
-    result = evaluate(counts, latencies, start, end, args.availability_target, args.latency_target_ms)
+    counts = fetch_series(
+        client, args.project, run_filter(REQUEST_COUNT, args.service), start, end, ["metric.label.response_code_class"]
+    )
+    latencies = fetch_series(client, args.project, run_filter(REQUEST_LATENCIES, args.service), start, end, [])
+    uptime = []
+    if args.uptime_check_id:
+        uptime = fetch_series(
+            client, args.project, uptime_filter(args.uptime_check_id), start, end, [],
+            aligner="ALIGN_FRACTION_TRUE", reducer="REDUCE_MEAN", period_s=300,
+        )
+    result = evaluate(
+        counts, latencies, start, end, args.availability_target, args.latency_target_ms, uptime_series=uptime
+    )
 
     out = Path(args.out_dir) / f"{name}.md"
     out.parent.mkdir(parents=True, exist_ok=True)

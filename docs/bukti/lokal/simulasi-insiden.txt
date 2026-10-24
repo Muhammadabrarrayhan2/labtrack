@@ -1,0 +1,17 @@
+Lingkungan: lokal (docker compose). Simulasi terkendali: container database dihentikan.
+== Kondisi awal
+2026-10-24 10:27:55 WIB  HTTP 200  {"status":"ok","database":"ok","version":"1.0.0","environment":"local"}
+== 2026-10-24 10:27:55 WIB  Insiden dipicu: docker compose stop db
+ Container labtrack-db-1 Stopped 
+2026-10-24 10:28:01 WIB  HTTP 503  {"status":"degraded","database":"unreachable","request_id":"b399b530abc84c33"}
+2026-10-24 10:28:10 WIB  HTTP 503  {"status":"degraded","database":"unreachable","request_id":"9cecaecb68454326"}
+2026-10-24 10:28:19 WIB  HTTP 503  {"status":"degraded","database":"unreachable","request_id":"a08a85caf27b4cb5"}
+== Diagnosis: cari request_id a08a85caf27b4cb5 di log aplikasi (setara Logs Explorer jsonPayload.request_id)
+{"severity": "ERROR", "message": "Database health check failed", "logger": "labtrack", "request_id": "a08a85caf27b4cb5"
+{"severity": "ERROR", "message": "GET /health 503", "logger": "labtrack", "request_id": "a08a85caf27b4cb5"
+== Endpoint login saat basis data mati (500 dengan request_id):
+{"detail":"Internal server error","request_id":"3d39b528272f42b2"}  HTTP 500
+== 2026-10-24 10:28:28 WIB  Pemulihan: docker compose start db
+ Container labtrack-db-1 Started 
+2026-10-24 10:28:34 WIB  HTTP 200  {"status":"ok","database":"ok","version":"1.0.0","environment":"local"}
+== 2026-10-24 10:28:34 WIB  Layanan pulih

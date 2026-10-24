@@ -174,7 +174,44 @@ Angka di bawah adalah **perkiraan** dari harga katalog publik Google Cloud dan h
 
 > [ISI SETELAH DEPLOY: tangkapan layar estimasi Pricing Calculator dan laporan biaya aktual dari Billing > Reports, ID bukti B-002-02]
 
-## 4. Referensi
+## 4. Mekanisme ketersediaan dan akses
+
+| Mekanisme | Pengertian | Penerapan di LabTrack | Batasan |
+|---|---|---|---|
+| *Failover* | Pengalihan ke komponen yang sehat saat komponen gagal | Cloud Run mengganti instans yang gagal *liveness probe* `/health` dan hanya mengirim trafik ke instans yang lulus *startup probe*. Rollback revisi (`scripts/ops/rollback.sh`) adalah *failover* manual ke versi sebelumnya | Cloud SQL ZONAL tidak memiliki *standby*; *failover* otomatis basis data memerlukan `availability_type = "REGIONAL"` dengan biaya sekitar dua kali lipat |
+| *Resiliency* | Kemampuan bertahan dan pulih dari gangguan | *Connection pool* dengan `pool_pre_ping` memulihkan koneksi basis data yang terputus; aplikasi *stateless* sehingga instans baru langsung dapat melayani; simulasi insiden membuktikan layanan pulih otomatis setelah basis data kembali | Selama basis data mati, permintaan yang butuh data gagal (500/503) |
+| *Replication* | Salinan data atau sumber daya | Cloud Storage menyimpan objek secara redundan di beberapa zona dalam region; backup Cloud SQL dan `pg_dump` disimpan terpisah dari instans; image disimpan di Artifact Registry sehingga instans dapat dibuat ulang | Tidak ada *read replica* Cloud SQL (tidak diperlukan pada beban saat ini) |
+| *Access* | Akses dari berbagai perangkat melalui perantara (*broker*) | Google Front End menjadi titik akses HTTPS tunggal; peramban, `curl`, dan skrip Python memakai API yang sama; IAP menjadi perantara akses SSH ke VM | |
+
+## 5. Ancaman keamanan dan mitigasi
+
+| Ancaman | Mitigasi di LabTrack | Rujukan | Celah yang diketahui |
+|---|---|---|---|
+| DoS / DDoS | Infrastruktur Google Front End menyerap serangan volumetrik di lapisan jaringan; `max_instance_count = 3` membatasi biaya bila terjadi banjir permintaan; alert rasio 5xx dan *burn rate* mendeteksi gangguan | `main.tf`, `slo.tf` | Tidak ada *rate limiting* per pengguna dan tidak ada WAF (Cloud Armor memerlukan *load balancer* eksternal berbayar). Batas 3 instans juga berarti serangan dapat menurunkan ketersediaan |
+| Serangan autentikasi (tebak password, pencurian kredensial) | Password di-*hash* dengan bcrypt; login membandingkan dengan *hash* tiruan bila email tidak dikenal sehingga waktu respons tidak membocorkan email terdaftar; token JWT berumur 120 menit; rotasi kunci JWT dengan `rotate-secret.sh`; tanpa kunci JSON service account (WIF); verifikasi dua langkah untuk akun konsol (aktivitas S8) | `app/security.py`, `app/routers/auth.py`, `cicd.tf` | Belum ada penguncian akun setelah login gagal berulang dan belum ada MFA di tingkat aplikasi |
+| Serangan otorisasi (akses melebihi hak) | RBAC dua peran (`admin`, `assistant`) diperiksa di setiap endpoint; IAM *least privilege* untuk setiap service account; bucket privat dengan *public access prevention*; signed URL 15 menit; Cloud SQL tanpa *authorized networks* | `app/deps.py`, `main.tf`, `iaas.tf` | |
+| Kebocoran rahasia | Secret Manager, tidak ada rahasia di image atau repositori, `terraform.tfvars` dan state di-*gitignore* | `main.tf`, `.gitignore` | State Terraform lokal berisi nilai `random_password`; gunakan backend GCS untuk tim |
+
+## 6. Jenis penyimpanan
+
+| Jenis | Karakteristik | Dipakai di LabTrack | Alasan |
+|---|---|---|---|
+| *File storage* | Hierarki folder dan berkas, dipakai bersama melalui protokol NFS/SMB | Tidak dipakai (padanannya Filestore) | Tidak ada kebutuhan berbagi sistem berkas antar-server |
+| *Block storage* | Volume disk yang dipasang ke satu mesin | PD-SSD Cloud SQL 10 GB, boot disk `pd-standard` VM 10 GB | Basis data dan sistem operasi memerlukan akses blok berlatensi rendah |
+| *Object storage* | Objek dengan kunci dan metadata melalui HTTP API | Cloud Storage untuk PDF laporan dan berkas `pg_dump` | Kapasitas tidak perlu disediakan di muka; murah untuk berkas besar |
+| *Relational database* | Tabel, SQL, transaksi ACID, relasi | Cloud SQL PostgreSQL 16 (mahasiswa, kehadiran, laporan) | Data praktikum saling berelasi dan membutuhkan *constraint* unik (NIM, kehadiran per sesi) |
+| *Non-relational database* | Model fleksibel: dokumen, *key-value*, graf, *cache* | Tidak dipakai (padanannya Firestore atau Memorystore) | Skema data stabil dan relasional; tidak ada kebutuhan *cache* pada beban saat ini |
+
+## 7. Jenis pengujian sistem
+
+| Jenis | Tujuan | Implementasi di LabTrack | Hasil |
+|---|---|---|---|
+| Unit dan fungsional | Kebenaran logika per fitur | `tests/test_api.py` dan lainnya, `pytest` | 65 test lulus, cakupan `app/` 94% |
+| *Integration* | Data dan komunikasi antar-komponen (API, basis data, *storage*) | Job CI `test-postgres` menjalankan test API terhadap PostgreSQL 16; `scripts/api_integration_check.py` menguji alur lengkap terhadap API yang berjalan | Lokal: 33 test lulus di PostgreSQL 16; 9 dari 9 pemeriksaan integrasi lulus (`docs/bukti/lokal/integration-report.md`) |
+| *Performance* | p95, *throughput*, *error rate* pada beban tertentu | Locust 50 pengguna (`scripts/loadtest/locustfile.py`) | Lokal: 24,87 RPS, p95 65 ms, 0% gagal (`docs/03-kebutuhan-perangkat-keras.md` bagian 5.4) |
+| *Stress* | Perilaku saat kelebihan beban dan pemulihannya | Locust `LOAD_SHAPE=stress`: 100, 150, 200, 250, 300 pengguna lalu turun ke 20 | Diisi setelah dijalankan di Google Cloud (`docs/03-kebutuhan-perangkat-keras.md` bagian 6) |
+
+## 8. Referensi
 
 1. Google Cloud. *Cloud Run: What is Cloud Run*. Dokumentasi resmi.
 2. Knative Project. *Knative Serving Documentation*.

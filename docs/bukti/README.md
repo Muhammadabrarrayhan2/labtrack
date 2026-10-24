@@ -17,3 +17,4 @@ Aturan pengambilan bukti:
 | `013/` | J.631120.013.01 Menjalankan aktivitas rutin pada IaaS, PaaS, dan SaaS |
 | `014/` | J.631120.014.01 Memantau sarana dan prasarana agar bisa digunakan oleh user sesuai dengan SLA |
 | `015/` | J.631120.015.01 Memberikan dukungan teknis atas masalah user dan report next layer |
+| `lokal/` | Bukti nyata dari lingkungan lokal docker compose (bukan Google Cloud), sudah terisi |

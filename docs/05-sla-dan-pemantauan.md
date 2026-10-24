@@ -43,7 +43,7 @@ Definisi tingkat keparahan dan alur penanganan ada di `docs/06-sop-dukungan-tekn
 | Tingkat | Contoh | Respons awal | Target penyelesaian atau solusi sementara |
 |---|---|---|---|
 | P1 Kritis | API tidak dapat diakses semua pengguna, `/health` 503 | 15 menit | 2 jam (sesuai RTO) |
-| P2 Tinggi | Satu fitur utama gagal (misalnya input kehadiran), banyak pengguna terdampak | 1 jam | 4 jam |
+| P2 Tinggi | Satu fitur utama gagal (misalnya input kehadiran), banyak pengguna terdampak | 30 menit | 4 jam |
 | P3 Sedang | Gangguan sebagian dengan solusi alternatif, latensi tinggi | 4 jam kerja | 2 hari kerja |
 | P4 Rendah | Pertanyaan, permintaan akun, perbaikan kecil | 1 hari kerja | 5 hari kerja |
 
@@ -77,6 +77,28 @@ Burn rate 10 berarti anggaran 30 hari habis dalam 30 / 10 = 3 hari
 Rasio galat yang memicu alert    = 10 x 0,5%             = 5% permintaan dalam 1 jam terakhir
 Anggaran terpakai dalam 1 jam    = 10 x (1 jam / 720 jam) = sekitar 1,4% anggaran bulanan
 ```
+
+### 3.1 Ketersediaan berbasis waktu
+
+Selain SLI berbasis permintaan, `scripts/sla_report.py --uptime-check-id <id>` menghitung ketersediaan berbasis waktu dari uptime check `/health`, cara yang dipakai pada contoh modul pelatihan:
+
+```
+Ketersediaan = (waktu teramati - waktu henti) / waktu teramati
+```
+
+Uptime check berjalan setiap 5 menit dari beberapa region. Satu jendela 5 menit dihitung henti bila kurang dari separuh region pemeriksa lulus, sama dengan kondisi alert uptime.
+
+Contoh perhitungan dengan angka modul pelatihan (30 hari, target 99,9%):
+
+```
+Waktu teramati       = 30 x 24 x 60                 = 43.200 menit = 8.640 jendela
+Waktu henti          = 9 jendela x 5 menit          = 45 menit
+Ketersediaan         = (43.200 - 45) / 43.200       = 99,8958%
+Target 99,9%         -> tidak tercapai (batas 99,9% = 43,2 menit henti)
+Target LabTrack 99,5% -> tercapai (batas 216 menit henti)
+```
+
+Perhitungan ini diuji dengan data tiruan di `tests/test_sla_report.py` (`test_time_based_availability_and_downtime_minutes`). Kedua cara saling melengkapi: SLI berbasis permintaan tidak mencatat apa pun saat tidak ada trafik, sedangkan uptime check tetap mengukur ketika layanan sepi.
 
 Kebijakan anggaran galat:
 
@@ -151,3 +173,30 @@ Berkas `docs/laporan-sla/YYYY-MM.md` dihasilkan otomatis dengan struktur di bawa
 | Status SLA | > [ISI SETELAH DEPLOY: Tercapai atau Tidak tercapai] |
 
 > [BUKTI: B-014-05, berkas docs/laporan-sla/2026-10.md hasil skrip, ditambah screenshot terminal saat skrip dijalankan]
+
+## 7. Pemantauan per lapisan infrastruktur
+
+| Lapisan | Indikator | Cloud Run | Cloud SQL | VM `labtrack-ops` (Ops Agent) |
+|---|---|---|---|---|
+| CPU | *Utilization*, *saturation* | `run.googleapis.com/container/cpu/utilizations` | `cloudsql.googleapis.com/database/cpu/utilization` (alert > 80%) | `agent.googleapis.com/cpu/utilization`; *steal time* menunjukkan *contention* vCPU bersama |
+| Memori | Memori tersedia, *swap*, tekanan memori | `run.googleapis.com/container/memory/utilizations` (batas 512 MiB) | `cloudsql.googleapis.com/database/memory/utilization` | `agent.googleapis.com/memory/percent_used`, `agent.googleapis.com/swap/percent_used` |
+| *Storage* | Kapasitas, IOPS, latensi | Tidak relevan (*stateless*) | `cloudsql.googleapis.com/database/disk/utilization` (alert > 80%), `disk/read_ops_count`, `disk/write_ops_count` | `agent.googleapis.com/disk/percent_used`, `agent.googleapis.com/disk/operation_time` |
+| Jaringan | *Throughput*, latensi, kehilangan paket | `request_count`, `request_latencies`, uptime check dari beberapa region | `cloudsql.googleapis.com/database/network/received_bytes_count` dan `sent_bytes_count`, `postgresql/num_backends` (alert > 20) | `agent.googleapis.com/interface/traffic`; log galat Cloud NAT |
+| Aplikasi | Ketersediaan dan latensi dari sisi pengguna | SLO ketersediaan dan latensi, uptime check `/health` | Pemeriksaan `SELECT 1` di `/health` | Log `labtrack-backup: success` |
+
+Metrik Cloud Run dan Cloud SQL tersedia otomatis tanpa agen. Metrik dalam VM (memori, *swap*, disk per sistem berkas) memerlukan Ops Agent, yang dipasang oleh startup script, setara peran Node Exporter pada arsitektur Prometheus dan Grafana di modul.
+
+> [BUKTI: B-014-06, Compute Engine > labtrack-ops > Observability yang menampilkan CPU, memori, disk, dan jaringan dari Ops Agent]
+
+## 8. Analisis penyimpangan SLA
+
+Bila laporan bulanan menyatakan SLA tidak tercapai, atau anggaran galat terpakai lebih dari 50%, analisis dilakukan dengan empat langkah berikut.
+
+| Langkah | Kegiatan | Sumber data |
+|---|---|---|
+| 1. Kumpulkan bukti | Ambil grafik SLO, daftar insiden pada periode tersebut, log galat beserta waktu mulai dan selesai | Monitoring > SLOs, Alerting > Incidents, Logs Explorer `severity>=ERROR`, issue berlabel `insiden` |
+| 2. Evaluasi | Bandingkan realisasi dengan target pada periode yang sama. Keluarkan kejadian yang termasuk pengecualian (bagian 1.1): pemeliharaan terjadwal yang diumumkan, gangguan regional Google, simulasi insiden yang diumumkan. Hitung ulang ketersediaan tanpa jendela pengecualian | Laporan `scripts/sla_report.py`, kalender pengumuman pemeliharaan |
+| 3. Tindak lanjut | Tulis analisis akar masalah (RCA) untuk setiap insiden yang dihitung, tetapkan perbaikan dengan penanggung jawab dan tenggat, laporkan pelanggaran kepada koordinator laboratorium | Bagian "Akar masalah" dan "Tindak lanjut pencegahan" pada issue `laporan-insiden` |
+| 4. Kompensasi | Hanya sesuai kontrak dan prosedur klaim. LabTrack adalah layanan internal laboratorium tanpa kontrak berbayar, sehingga tidak ada kompensasi finansial. Bentuk pertanggungjawabannya adalah laporan pelanggaran kepada koordinator dan penerapan kebijakan anggaran galat (penundaan fitur) | Templat laporan bulanan bagian 6 |
+
+Contoh simulasi: bila simulasi insiden di `docs/06-sop-dukungan-teknis.md` bagian 6 menyebabkan 10 menit henti dan simulasi tersebut diumumkan sebelumnya, jendela itu dikeluarkan dari perhitungan SLA tetapi tetap dicatat dalam laporan sebagai pemakaian anggaran galat.
