@@ -1,0 +1,104 @@
+name: Laporan insiden
+description: Catatan insiden layanan oleh petugas L2 (gangguan yang memengaruhi SLA).
+title: "[Insiden] "
+labels: ["insiden"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Diisi oleh petugas L2. Perbarui issue ini selama penanganan, lalu lengkapi bagian akar masalah setelah layanan pulih.
+        Prosedur lengkap: docs/06-sop-dukungan-teknis.md.
+
+  - type: dropdown
+    id: keparahan
+    attributes:
+      label: Tingkat keparahan
+      options:
+        - P1 Kritis
+        - P2 Tinggi
+        - P3 Sedang
+        - P4 Rendah
+    validations:
+      required: true
+
+  - type: input
+    id: mulai
+    attributes:
+      label: Waktu mulai (WIB)
+      description: Waktu gejala pertama, dari alert atau log. Contoh "2026-10-26 08.05".
+    validations:
+      required: true
+
+  - type: input
+    id: terdeteksi
+    attributes:
+      label: Waktu terdeteksi (WIB) dan sumber deteksi
+      description: Contoh "08.11, email alert LabTrack API is down" atau "08.15, laporan pengguna #12".
+    validations:
+      required: true
+
+  - type: input
+    id: pulih
+    attributes:
+      label: Waktu pulih (WIB)
+      description: Kosongkan selama insiden masih berlangsung.
+
+  - type: checkboxes
+    id: sli
+    attributes:
+      label: SLI yang terdampak
+      options:
+        - label: Ketersediaan (permintaan 5xx, /health gagal)
+        - label: Latensi (p95 di atas 800 ms)
+        - label: Integritas atau kehilangan data (RPO)
+        - label: Tidak memengaruhi SLI
+
+  - type: textarea
+    id: dampak
+    attributes:
+      label: Dampak terhadap pengguna
+      description: Siapa yang terdampak, fitur apa, berapa lama. Sertakan request_id contoh dari laporan pengguna.
+    validations:
+      required: true
+
+  - type: textarea
+    id: kronologi
+    attributes:
+      label: Kronologi dan tindakan
+      description: Satu baris per kejadian, waktu WIB, apa yang diamati atau dilakukan, dan oleh siapa.
+      placeholder: |
+        08.05 Alert uptime check gagal diterima
+        08.07 Konfirmasi: curl /health mengembalikan 503
+        08.10 Pemberitahuan awal dikirim ke grup asisten
+    validations:
+      required: true
+
+  - type: dropdown
+    id: eskalasi
+    attributes:
+      label: Eskalasi
+      options:
+        - Tidak perlu eskalasi
+        - L3 Google Cloud Support
+        - L3 GitHub Support
+        - L3 Koordinator laboratorium
+    validations:
+      required: true
+
+  - type: textarea
+    id: akar_masalah
+    attributes:
+      label: Akar masalah
+      description: Diisi setelah pulih.
+
+  - type: textarea
+    id: tindak_lanjut
+    attributes:
+      label: Tindak lanjut pencegahan
+      description: Perubahan konfigurasi, alert, atau prosedur, masing-masing dengan penanggung jawab dan tenggat.
+
+  - type: input
+    id: anggaran
+    attributes:
+      label: Perkiraan anggaran galat terpakai
+      description: Dari Monitoring > SLOs, atau dari scripts/sla_report.py.

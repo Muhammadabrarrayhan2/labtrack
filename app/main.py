@@ -5,11 +5,14 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app import __version__
 from app.config import DEFAULT_JWT_SECRET, get_settings
@@ -74,11 +77,36 @@ app.add_middleware(
 )
 
 
+def request_id_of(request: Request) -> str | None:
+    return getattr(request.state, "request_id", None)
+
+
+def error_response(request: Request, status_code: int, detail, headers: dict | None = None) -> JSONResponse:
+    """Error body shared by all handlers. Users quote request_id when reporting a problem,
+    and support finds the matching log line with jsonPayload.request_id in Cloud Logging."""
+    return JSONResponse(
+        status_code=status_code,
+        content={"detail": detail, "request_id": request_id_of(request)},
+        headers=headers,
+    )
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
+    return error_response(request, exc.status_code, exc.detail, getattr(exc, "headers", None))
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    return error_response(request, 422, jsonable_encoder(exc.errors()))
+
+
 @app.middleware("http")
 async def access_log(request: Request, call_next):
     # Reuse the Cloud Run trace id so app logs line up with request logs in Cloud Logging
     trace = request.headers.get("x-cloud-trace-context", "")
     request_id = trace.split("/")[0] or uuid.uuid4().hex[:16]
+    request.state.request_id = request_id
     start = time.perf_counter()
     try:
         response = await call_next(request)
@@ -87,7 +115,7 @@ async def access_log(request: Request, call_next):
             "Unhandled error",
             extra={"request_id": request_id, "method": request.method, "path": request.url.path},
         )
-        return JSONResponse(status_code=500, content={"detail": "Internal server error", "request_id": request_id})
+        return error_response(request, 500, "Internal server error", {"X-Request-ID": request_id})
 
     latency_ms = round((time.perf_counter() - start) * 1000, 1)
     response.headers["X-Request-ID"] = request_id
@@ -117,13 +145,16 @@ def root() -> dict:
 
 
 @app.get("/health", tags=["ops"])
-def health():
+def health(request: Request):
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
     except Exception:
-        logger.exception("Database health check failed")
-        return JSONResponse(status_code=503, content={"status": "degraded", "database": "unreachable"})
+        logger.exception("Database health check failed", extra={"request_id": request_id_of(request)})
+        return JSONResponse(
+            status_code=503,
+            content={"status": "degraded", "database": "unreachable", "request_id": request_id_of(request)},
+        )
     return {"status": "ok", "database": "ok", "version": __version__, "environment": settings.app_env}
 
 

@@ -1,0 +1,109 @@
+name: Laporan masalah pengguna
+description: Laporkan kendala saat memakai LabTrack (galat, data tidak sesuai, tidak bisa login).
+title: "[Masalah] "
+labels: ["laporan-masalah", "triase"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Terima kasih telah melapor. Isi sesuai keadaan sebenarnya.
+        **Jangan menulis password atau token** di laporan ini.
+        `request_id` terdapat pada respons galat (kolom `request_id` di JSON) atau header `X-Request-ID`.
+
+  - type: input
+    id: pelapor
+    attributes:
+      label: Nama dan peran pelapor
+      description: Contoh "Rina, asisten Praktikum Data Mining" atau "Koordinator Lab SI".
+    validations:
+      required: true
+
+  - type: input
+    id: email
+    attributes:
+      label: Email akun LabTrack
+      description: Email yang dipakai untuk login. Bukan password.
+    validations:
+      required: true
+
+  - type: input
+    id: endpoint
+    attributes:
+      label: Fitur atau endpoint
+      description: Contoh "PUT /sessions/3/attendance" atau "unggah laporan PDF di Swagger".
+    validations:
+      required: true
+
+  - type: input
+    id: waktu
+    attributes:
+      label: Waktu kejadian (WIB)
+      description: Tanggal dan jam, contoh "2026-10-26 08.05".
+    validations:
+      required: true
+
+  - type: input
+    id: request_id
+    attributes:
+      label: request_id
+      description: Salin nilai request_id dari respons galat. Isi "tidak ada" bila tidak tersedia.
+    validations:
+      required: true
+
+  - type: input
+    id: status_code
+    attributes:
+      label: Kode status HTTP
+      description: Contoh 401, 403, 409, 413, 415, 422, 500, 503.
+
+  - type: textarea
+    id: langkah
+    attributes:
+      label: Langkah yang dilakukan
+      description: Urutan tindakan sampai masalah muncul.
+      placeholder: |
+        1. Login sebagai asisten
+        2. Buka PUT /sessions/3/attendance
+        3. Kirim kehadiran 40 mahasiswa
+    validations:
+      required: true
+
+  - type: textarea
+    id: harapan
+    attributes:
+      label: Hasil yang diharapkan
+    validations:
+      required: true
+
+  - type: textarea
+    id: aktual
+    attributes:
+      label: Hasil yang terjadi
+      description: Tempel pesan galat (kolom detail). Hapus data pribadi mahasiswa bila ada.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: keparahan
+    attributes:
+      label: Perkiraan tingkat keparahan
+      description: Petugas L1 akan memverifikasi saat triase (lihat docs/06-sop-dukungan-teknis.md).
+      options:
+        - P1 Kritis, semua pengguna tidak dapat memakai LabTrack
+        - P2 Tinggi, satu fitur utama gagal untuk banyak pengguna
+        - P3 Sedang, gangguan sebagian dan ada cara lain
+        - P4 Rendah, pertanyaan atau permintaan
+    validations:
+      required: true
+
+  - type: dropdown
+    id: dampak
+    attributes:
+      label: Jumlah pengguna terdampak
+      options:
+        - Hanya saya
+        - Beberapa asisten
+        - Semua pengguna
+        - Belum diketahui
+    validations:
+      required: true

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Prosedur dukungan teknis LabTrack
+    url: https://github.com/OWNER/labtrack/blob/main/docs/06-sop-dukungan-teknis.md
+    about: Baca panduan pemecahan masalah umum sebelum membuat laporan.
+  - name: Status layanan Google Cloud
+    url: https://status.cloud.google.com/
+    about: Periksa apakah ada gangguan di sisi Google Cloud (region asia-southeast2).
