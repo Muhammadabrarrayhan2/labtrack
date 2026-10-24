@@ -145,6 +145,68 @@ resource "google_monitoring_dashboard" "labtrack" {
             }]
           }
         },
+        # SLO status (slo.tf). Budget fraction: 1 = untouched, 0 = exhausted, below 0 = SLO missed.
+        {
+          title = "Availability SLO 99.5%: error budget remaining"
+          scorecard = {
+            timeSeriesQuery = {
+              timeSeriesFilter = {
+                filter = "select_slo_budget_fraction(\"${google_monitoring_slo.availability.name}\")"
+              }
+            }
+            thresholds = [
+              { color = "YELLOW", direction = "BELOW", value = 0.5 },
+              { color = "RED", direction = "BELOW", value = 0.1 },
+            ]
+          }
+        },
+        {
+          title = "Latency SLO p95 < 800 ms: error budget remaining"
+          scorecard = {
+            timeSeriesQuery = {
+              timeSeriesFilter = {
+                filter = "select_slo_budget_fraction(\"${google_monitoring_slo.latency.name}\")"
+              }
+            }
+            thresholds = [
+              { color = "YELLOW", direction = "BELOW", value = 0.5 },
+              { color = "RED", direction = "BELOW", value = 0.1 },
+            ]
+          }
+        },
+        {
+          title = "Availability SLO burn rate (1 hour window, alert at 10)"
+          xyChart = {
+            dataSets = [{
+              plotType = "LINE"
+              timeSeriesQuery = {
+                timeSeriesFilter = {
+                  filter = "select_slo_burn_rate(\"${google_monitoring_slo.availability.name}\", \"3600s\")"
+                }
+              }
+            }]
+            thresholds = [{ value = 10 }]
+          }
+        },
+        {
+          title = "Cloud SQL connections (limit 25)"
+          xyChart = {
+            dataSets = [{
+              plotType = "LINE"
+              timeSeriesQuery = {
+                timeSeriesFilter = {
+                  filter = "metric.type=\"cloudsql.googleapis.com/database/postgresql/num_backends\" resource.type=\"cloudsql_database\" resource.label.\"database_id\"=\"${var.project_id}:${google_sql_database_instance.db.name}\""
+                  aggregation = {
+                    alignmentPeriod    = "60s"
+                    perSeriesAligner   = "ALIGN_MAX"
+                    crossSeriesReducer = "REDUCE_SUM"
+                  }
+                }
+              }
+            }]
+            thresholds = [{ value = 20 }]
+          }
+        },
       ]
     }
   })

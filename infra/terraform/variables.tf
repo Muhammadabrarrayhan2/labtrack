@@ -89,3 +89,24 @@ variable "cloud_sql_proxy_version" {
   type        = string
   default     = "2.18.0"
 }
+
+# ---------------------------------------------------------------------------
+# SLOs and alerting (slo.tf). No cost: built-in metrics only.
+# ---------------------------------------------------------------------------
+variable "slo_availability_goal" {
+  description = "Availability SLO goal as a fraction of non-5xx requests over 30 days"
+  type        = number
+  default     = 0.995
+}
+
+variable "slo_latency_threshold_ms" {
+  description = "Latency SLO threshold in ms; 95% of requests must be faster"
+  type        = number
+  default     = 800
+}
+
+variable "sql_connection_alert_threshold" {
+  description = "Alert when PostgreSQL connections exceed this (db-f1-micro max_connections is 25)"
+  type        = number
+  default     = 20
+}
