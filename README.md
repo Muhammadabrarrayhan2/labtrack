@@ -86,6 +86,22 @@ pytest -q --cov=app --cov-report=term-missing
 
 19 tests cover auth and role checks, validation, conflict handling, idempotent enrollment and attendance upserts, the attendance summary math, PDF upload validation, signed download, and grading. Coverage is about 93%.
 
+## Load test
+
+`scripts/loadtest/locustfile.py` simulates lab assistants at the start of a practicum session. Each virtual user logs in once, then calls `GET /students`, `GET /courses/{id}/attendance-summary`, `PUT /sessions/{id}/attendance` and `GET /health` with a 1 to 3 second think time. Seed the target first with `scripts/seed_demo.py`.
+
+```bash
+pip install -r requirements-dev.txt
+export API=$(terraform -chdir=infra/terraform output -raw api_url)
+export LABTRACK_PASSWORD=$(gcloud secrets versions access latest --secret=labtrack-admin-password)
+mkdir -p docs/bukti/003
+locust -f scripts/loadtest/locustfile.py --host "$API" \
+  --headless -u 50 -r 5 -t 5m \
+  --csv docs/bukti/003/locust --html docs/bukti/003/locust-report.html
+```
+
+50 users, spawn rate 5 per second, 5 minutes. `COURSE_ID` and `SESSION_ID` (default 1) select the seeded course and session. Results go into `docs/03-kebutuhan-perangkat-keras.md` section 5.
+
 ## Deploy to Google Cloud
 
 Step by step guide (Indonesian): [docs/PANDUAN-DEPLOYMENT.md](docs/PANDUAN-DEPLOYMENT.md)
