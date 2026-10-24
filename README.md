@@ -18,7 +18,17 @@ flowchart LR
     user -. signed URL, 15 min .-> gcs
     sm[Secret Manager] -- DB password, JWT secret, admin password --> run
     run -- JSON logs --> log[Cloud Logging]
-    mon[Cloud Monitoring: uptime check, alert, dashboard] -- GET /health --> run
+    mon[Cloud Monitoring: uptime check, SLOs, alerts, dashboard] -- GET /health --> run
+    mon -- email alerts --> mail[Gmail]
+
+    subgraph vpc [labtrack-ops-vpc, optional: enable_ops_vm]
+        vm[Compute Engine e2-micro: labtrack-ops, no external IP]
+    end
+    admin2[Cloud engineer] -- SSH via IAP 35.235.240.0/20 --> vm
+    vm -- egress --> nat[Cloud NAT] -- apt, Ops Agent repo --> internet((Internet))
+    vm -- nightly pg_dump via Cloud SQL Auth Proxy --> sql
+    vm -- write-only upload --> bkp[(Cloud Storage: backups, 30 day lifecycle)]
+    snap[Snapshot schedule: daily, 7 days] -. boot disk .-> vm
 ```
 
 | Layer | Service | Notes |
@@ -28,9 +38,11 @@ flowchart LR
 | Object storage | Cloud Storage | Uniform access, public access prevention, versioning, V4 signed URLs |
 | Secrets | Secret Manager | Injected as env vars, never stored in the image or repo |
 | Identity | Dedicated runtime and deployer service accounts | Least privilege roles only |
-| CI/CD | GitHub Actions + Workload Identity Federation | Test, build, push, deploy, smoke test |
+| CI/CD | GitHub Actions + Workload Identity Federation | Shellcheck, test, Terraform validate, build, push, deploy, smoke test |
 | IaC | Terraform (google provider 6.x) | Whole stack in `infra/terraform` |
-| Observability | Cloud Logging, uptime check, alert policy, dashboard | Structured JSON logs with request ID |
+| Observability | Cloud Logging, uptime check, SLOs, alert policies, dashboard | Structured JSON logs; every error body carries the same `request_id` as the log line |
+| SLOs | Cloud Monitoring service monitoring | 99.5% non-5xx requests and 95% under 800 ms over 30 days, fast-burn alert (`slo.tf`) |
+| Ops VM (optional, off by default) | Compute Engine e2-micro, Cloud NAT, IAP | Nightly `pg_dump` to a write-only bucket, daily disk snapshots (`iaas.tf`) |
 
 ## API overview
 
@@ -84,7 +96,7 @@ BASE_URL=http://localhost:8080 ADMIN_PASSWORD=AdminPass123 python scripts/seed_d
 pytest -q --cov=app --cov-report=term-missing
 ```
 
-19 tests cover auth and role checks, validation, conflict handling, idempotent enrollment and attendance upserts, the attendance summary math, PDF upload validation, signed download, and grading. Coverage is about 93%.
+52 tests: the original 19 API tests (auth and role checks, validation, conflicts, idempotent enrollment and attendance upserts, attendance summary math, PDF upload validation, signed download, grading), 11 tests that every error response carries a `request_id` matching the `X-Request-ID` header and the log line, 13 tests for the SLA report math on mocked Cloud Monitoring time series, and 9 tests for the ops scripts with a fake `gcloud` on `PATH`. Coverage of `app/` is about 94%. CI also runs `shellcheck` on `scripts/ops` and `terraform fmt -check` and `validate`.
 
 ## Load test
 
@@ -117,11 +129,36 @@ terraform apply
 terraform output github_vars   # copy into GitHub repository variables
 ```
 
+Optional components, both off by default because they add monthly cost (estimates are in the variable descriptions in `variables.tf`):
+
+- `enable_sla_alerts = true` creates the five SLA alert policies in `slo.tf`. The SLOs and dashboard are always created.
+- `enable_ops_vm = true` creates the IaaS ops VM in `iaas.tf`.
+
+## Operations
+
+Routine scripts live in `scripts/ops/`. Each reads `PROJECT_ID` and `REGION` from the environment, uses `set -euo pipefail`, and prints every command before running it.
+
+| Script | Layer | Purpose |
+|---|---|---|
+| `deploy-image.sh` | PaaS | Deploy an image tag as a new Cloud Run revision, with smoke test |
+| `rollback.sh` | PaaS | Shift 100% of traffic to the previous revision, `--to-latest` to undo |
+| `scale.sh` | PaaS | Set min/max instances, warns when the Cloud SQL connection budget is exceeded |
+| `rotate-secret.sh` | PaaS | New JWT secret version and a forced new revision |
+| `sql-start-stop.sh` | PaaS | Start, stop or show the Cloud SQL instance |
+| `sql-backup-now.sh` | PaaS | On-demand Cloud SQL backup |
+| `sql-restore-test.sh` | PaaS | Restore the latest backup into a temporary instance, compare row counts, delete it |
+| `vm-start-stop.sh` | IaaS | Start, stop or show the ops VM |
+| `vm-ssh.sh` | IaaS | SSH through IAP, optionally run one command |
+| `vm-snapshot-now.sh` | IaaS | Manual boot disk snapshot |
+| `vm-patch.sh` | IaaS | `apt` upgrade over IAP, optional snapshot first and reboot |
+
+`scripts/sla_report.py` writes the monthly SLA report to `docs/laporan-sla/YYYY-MM.md` from Cloud Monitoring data.
+
 ## Project structure
 
 ```
 app/
-  main.py            FastAPI app, lifespan, access log middleware, /health
+  main.py            FastAPI app, lifespan, access log middleware, error handlers with request_id, /health
   config.py          Settings from environment (Cloud SQL socket, GCS, JWT)
   database.py        SQLAlchemy engine and session
   models.py          ORM models
@@ -131,14 +168,48 @@ app/
   storage.py         GCS and local storage backends
   logging_config.py  JSON logs for Cloud Logging
   routers/           auth, students, courses, sessions, reports
-infra/terraform/     main.tf, cicd.tf, monitoring.tf, variables.tf, outputs.tf
-.github/workflows/   ci-cd.yml
-scripts/seed_demo.py Demo data through the public API
+infra/terraform/
+  main.tf            APIs, Artifact Registry, IAM, secrets, Cloud SQL, bucket, Cloud Run
+  cicd.tf            Workload Identity Federation and deployer service account
+  monitoring.tf      Uptime check, uptime alert, dashboard
+  slo.tf             Custom service, availability and latency SLOs, SLA alert policies
+  iaas.tf            Optional ops VM, VPC, Cloud NAT, IAP firewall, backup bucket, snapshot schedule
+  templates/         Startup script for the ops VM
+  variables.tf, outputs.tf, versions.tf, .terraform.lock.hcl
+.github/
+  workflows/         ci-cd.yml
+  ISSUE_TEMPLATE/    User problem report and incident report forms (Indonesian)
+scripts/
+  seed_demo.py       Demo data through the public API
+  loadtest/          Locust scenario
+  ops/               Routine operations scripts (PaaS and IaaS)
+  sla_report.py      Monthly SLA report from Cloud Monitoring
+docs/                Certification portfolio in Indonesian, see below
+  bukti/             Evidence folders per competency unit, with screenshot checklists
+  laporan-sla/       Generated monthly SLA reports
 tests/               pytest suite
 ```
+
+## Kesesuaian dengan skema sertifikasi
+
+Repositori ini disusun sebagai bukti kompetensi (APL02) untuk sertifikasi BNSP Cloud Computing Engineer berdasarkan SKKNI Kepmenaker Nomor 456 Tahun 2015. Asesor sebaiknya mulai dari [docs/00-PEMETAAN-UNIT-KOMPETENSI.md](docs/00-PEMETAAN-UNIT-KOMPETENSI.md), yang memetakan setiap elemen kompetensi ke berkas, skrip, resource Terraform, test, dan kode tangkapan layar.
+
+| Unit | Dokumen |
+|---|---|
+| J.631120.001.01 Mendefinisikan terminologi dan konsep cloud computing | [01-konsep-cloud-computing.md](docs/01-konsep-cloud-computing.md) |
+| J.631120.002.01 Mengidentifikasi teknologi cloud computing | [02-teknologi-cloud.md](docs/02-teknologi-cloud.md) |
+| J.631120.003.01 Mengidentifikasi berbagai jenis perangkat keras yang dibutuhkan | [03-kebutuhan-perangkat-keras.md](docs/03-kebutuhan-perangkat-keras.md) |
+| J.631120.013.01 Menjalankan aktivitas rutin pada IaaS, PaaS, dan SaaS | [04-aktivitas-rutin-iaas-paas-saas.md](docs/04-aktivitas-rutin-iaas-paas-saas.md) |
+| J.631120.014.01 Memantau sarana dan prasarana sesuai SLA | [05-sla-dan-pemantauan.md](docs/05-sla-dan-pemantauan.md) |
+| J.631120.015.01 Memberikan dukungan teknis dan report next layer | [06-sop-dukungan-teknis.md](docs/06-sop-dukungan-teknis.md) |
+
+Langkah deploy dan pengambilan bukti: [docs/PANDUAN-DEPLOYMENT.md](docs/PANDUAN-DEPLOYMENT.md).
 
 ## Known limitations
 
 - Tables are created at startup with `create_all`. Schema changes after go-live should move to Alembic migrations.
 - Cloud SQL uses public IP restricted to the Auth Proxy. A private IP with a Serverless VPC connector or Direct VPC egress is the stricter option at extra cost.
 - Deleting a student removes database rows but leaves old PDFs in the bucket.
+- There is no API endpoint to deactivate a user or reset a password; the runbook does it in Cloud SQL Studio (`docs/04-aktivitas-rutin-iaas-paas-saas.md`).
+- Startup and liveness probes call `/health`, which checks the database. While Cloud SQL is down, new instances fail the startup probe, so some users get Cloud Run's own 503 page without a `request_id`.
+- The connection budget (3 instances x 7 = 21 of 25) is tight; two revisions running side by side during a rollout can exceed it briefly.

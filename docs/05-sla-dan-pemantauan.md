@@ -88,6 +88,8 @@ Kebijakan anggaran galat:
 
 ## 4. Inventaris pemantauan
 
+Alert M2 sampai M6 dibuat bila `enable_sla_alerts = true`. Variabel ini bernilai bawaan `false` karena Google telah mengumumkan tarif per kondisi alert pada Cloud Monitoring (sekitar US$1,50 per kondisi per bulan; periksa halaman harga terkini). SLO, uptime check M1, dan widget dasbor selalu dibuat.
+
 | No | Objek dipantau | Metrik atau sumber | Ambang | Durasi | Tingkat | Tujuan alert | Resource Terraform |
 |---|---|---|---|---|---|---|---|
 | M1 | Endpoint `/health` | Uptime check setiap 5 menit dari beberapa region | Gagal di lebih dari satu region | 60 detik | P1 | Email `alert_email` | `google_monitoring_alert_policy.uptime` |

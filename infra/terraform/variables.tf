@@ -110,3 +110,15 @@ variable "sql_connection_alert_threshold" {
   type        = number
   default     = 20
 }
+
+variable "enable_sla_alerts" {
+  description = <<-EOT
+    Create the five SLA alert policies in slo.tf (SLO fast burn, 5xx ratio, Cloud SQL CPU,
+    disk and connections). Google has announced per-condition pricing for Cloud Monitoring
+    alerting (about US$1.50 per condition per month, check the current Cloud Monitoring
+    pricing page), so five conditions could cost about US$7.50/month. The SLOs and dashboard
+    widgets are free and are always created. Set true for the assessment demo.
+  EOT
+  type        = bool
+  default     = false
+}

@@ -8,6 +8,8 @@ locals {
 
   request_count_filter = "metric.type=\"run.googleapis.com/request_count\" AND ${local.run_filter}"
   request_5xx_filter   = "${local.request_count_filter} AND metric.label.\"response_code_class\"=\"5xx\""
+
+  sla_alert_count = var.enable_sla_alerts ? 1 : 0
 }
 
 resource "google_monitoring_custom_service" "api" {
@@ -58,12 +60,13 @@ resource "google_monitoring_slo" "latency" {
 }
 
 # ---------------------------------------------------------------------------
-# Alert policies
+# Alert policies, gated by var.enable_sla_alerts (alert conditions may be billed)
 # ---------------------------------------------------------------------------
 
 # Fast burn: at 10x the budget is gone in 3 days (30 days / 10). For a 99.5% goal this
 # fires when more than 5% of requests in the last hour were 5xx.
 resource "google_monitoring_alert_policy" "slo_fast_burn" {
+  count        = local.sla_alert_count
   display_name = "LabTrack SLO: availability fast burn (10x over 1h)"
   combiner     = "OR"
   severity     = "CRITICAL"
@@ -87,6 +90,7 @@ resource "google_monitoring_alert_policy" "slo_fast_burn" {
 }
 
 resource "google_monitoring_alert_policy" "error_ratio" {
+  count        = local.sla_alert_count
   display_name = "LabTrack API: 5xx ratio > 5% for 5 minutes"
   combiner     = "OR"
   severity     = "ERROR"
@@ -122,6 +126,7 @@ resource "google_monitoring_alert_policy" "error_ratio" {
 }
 
 resource "google_monitoring_alert_policy" "sql_cpu" {
+  count        = local.sla_alert_count
   display_name = "LabTrack Cloud SQL: CPU > 80% for 10 minutes"
   combiner     = "OR"
   severity     = "WARNING"
@@ -150,6 +155,7 @@ resource "google_monitoring_alert_policy" "sql_cpu" {
 }
 
 resource "google_monitoring_alert_policy" "sql_disk" {
+  count        = local.sla_alert_count
   display_name = "LabTrack Cloud SQL: disk utilization > 80%"
   combiner     = "OR"
   severity     = "WARNING"
@@ -178,6 +184,7 @@ resource "google_monitoring_alert_policy" "sql_disk" {
 }
 
 resource "google_monitoring_alert_policy" "sql_connections" {
+  count        = local.sla_alert_count
   display_name = "LabTrack Cloud SQL: connections near limit"
   combiner     = "OR"
   severity     = "WARNING"

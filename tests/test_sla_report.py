@@ -139,7 +139,7 @@ def test_render_markdown_contains_report_fields():
     assert "| Permintaan 5xx | 10 |" in md
     assert "99.900%" in md
     assert "Status SLA bulan ini: Tercapai" in md
-    assert "—" not in md  # no em dashes in generated docs
+    assert "\u2014" not in md  # no em dashes in generated docs
 
 
 def test_main_writes_report_with_mocked_client(tmp_path, monkeypatch):

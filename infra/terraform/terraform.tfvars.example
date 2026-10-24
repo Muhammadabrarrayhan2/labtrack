@@ -4,3 +4,9 @@ region            = "asia-southeast2"
 image             = "asia-southeast2-docker.pkg.dev/labtrack-xxxxxx/labtrack/api:v1"
 github_repository = "your-github-username/labtrack"
 alert_email       = "you@example.com"
+
+# Optional components, both off by default because they can add monthly cost.
+# See the variable descriptions in variables.tf for estimates.
+# enable_sla_alerts = true   # five SLA alert policies in slo.tf
+# enable_ops_vm     = true   # IaaS ops VM with nightly pg_dump (iaas.tf)
+# ops_vm_region     = "us-central1"
