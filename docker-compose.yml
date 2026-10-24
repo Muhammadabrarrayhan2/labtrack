@@ -1,0 +1,35 @@
+# Local stack that mirrors production: API container + PostgreSQL 16
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: labtrack
+      POSTGRES_PASSWORD: labtrack
+      POSTGRES_DB: labtrack
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U labtrack"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    environment:
+      APP_ENV: local
+      DATABASE_URL: postgresql+psycopg://labtrack:labtrack@db:5432/labtrack
+      JWT_SECRET: local-compose-secret-at-least-32-characters-long
+      BOOTSTRAP_ADMIN_EMAIL: admin@labtrack.dev
+      BOOTSTRAP_ADMIN_PASSWORD: AdminPass123
+      LOCAL_UPLOAD_DIR: /app/uploads
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

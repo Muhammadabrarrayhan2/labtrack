@@ -1,0 +1,6 @@
+# Copy to terraform.tfvars and fill in. terraform.tfvars is git-ignored.
+project_id        = "labtrack-xxxxxx"
+region            = "asia-southeast2"
+image             = "asia-southeast2-docker.pkg.dev/labtrack-xxxxxx/labtrack/api:v1"
+github_repository = "your-github-username/labtrack"
+alert_email       = "you@example.com"
