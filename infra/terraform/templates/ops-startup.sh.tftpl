@@ -1,0 +1,105 @@
+#!/bin/bash
+# Startup script for the labtrack-ops VM. Runs on every boot and is idempotent.
+# Rendered by Terraform templatefile(): values in dollar-brace form come from iaas.tf,
+# and shell variables are written without braces so Terraform leaves them alone.
+set -euo pipefail
+
+PROXY_VERSION="${proxy_version}"
+PROXY_BIN=/usr/local/bin/cloud-sql-proxy
+
+echo "[labtrack-ops] startup script begin"
+
+# 1. PostgreSQL 16 client from the PGDG repo. Debian 12 ships pg_dump 15, which
+#    refuses to dump a PostgreSQL 16 server.
+if ! command -v pg_dump >/dev/null || ! pg_dump --version | grep -q " 16\."; then
+  apt-get update -q
+  apt-get install -y -q curl ca-certificates gnupg
+  install -d /usr/share/postgresql-common/pgdg
+  curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+    https://www.postgresql.org/media/keys/ACCC4CF8.asc
+  echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" \
+    > /etc/apt/sources.list.d/pgdg.list
+  apt-get update -q
+  apt-get install -y -q postgresql-client-16
+fi
+
+# 2. Cloud SQL Auth Proxy v2 (IAM authenticated, TLS to the instance)
+if [ ! -x "$PROXY_BIN" ] || ! "$PROXY_BIN" --version | grep -q "$PROXY_VERSION"; then
+  curl -fsSL -o "$PROXY_BIN" \
+    "https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v$PROXY_VERSION/cloud-sql-proxy.linux.amd64"
+  chmod 0755 "$PROXY_BIN"
+fi
+
+cat > /etc/systemd/system/cloud-sql-proxy.service <<'UNIT'
+[Unit]
+Description=Cloud SQL Auth Proxy for LabTrack
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/cloud-sql-proxy --address 127.0.0.1 --port 5432 ${connection_name}
+Restart=on-failure
+RestartSec=5
+DynamicUser=yes
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+# 3. Google Cloud Ops Agent: ships syslog/journald to Cloud Logging and VM metrics to Monitoring
+if ! systemctl list-unit-files | grep -q google-cloud-ops-agent; then
+  curl -fsSL -o /tmp/add-google-cloud-ops-agent-repo.sh \
+    https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh
+  bash /tmp/add-google-cloud-ops-agent-repo.sh --also-install
+fi
+
+# 4. Nightly logical backup: pg_dump through the proxy, upload to GCS
+cat > /usr/local/bin/labtrack-backup.sh <<'SCRIPT'
+#!/bin/bash
+# Logical backup of the LabTrack database. Complements the automated Cloud SQL backups:
+# a dump can be restored into any PostgreSQL 16, including outside Google Cloud.
+set -euo pipefail
+STAMP=$(date -u +%Y%m%dT%H%M%SZ)
+OUT=/var/tmp/labtrack-$STAMP.dump
+trap 'rm -f "$OUT"' EXIT
+
+echo "labtrack-backup: start $STAMP"
+PGPASSWORD=$(gcloud secrets versions access latest --secret=${db_secret})
+export PGPASSWORD
+pg_dump --host 127.0.0.1 --port 5432 --username ${db_user} --dbname ${db_name} \
+  --format=custom --compress=6 --no-owner --file "$OUT"
+SIZE=$(stat -c %s "$OUT")
+gcloud storage cp "$OUT" "gs://${backup_bucket}/backups/labtrack-$STAMP.dump"
+echo "labtrack-backup: success object=gs://${backup_bucket}/backups/labtrack-$STAMP.dump size_bytes=$SIZE"
+SCRIPT
+chmod 0755 /usr/local/bin/labtrack-backup.sh
+
+cat > /etc/systemd/system/labtrack-backup.service <<'UNIT'
+[Unit]
+Description=LabTrack nightly pg_dump to Cloud Storage
+Requires=cloud-sql-proxy.service
+After=cloud-sql-proxy.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/labtrack-backup.sh
+UNIT
+
+cat > /etc/systemd/system/labtrack-backup.timer <<'UNIT'
+[Unit]
+Description=Run the LabTrack backup every night at 02:30 WIB
+
+[Timer]
+OnCalendar=*-*-* 19:30:00 UTC
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target
+UNIT
+
+systemctl daemon-reload
+systemctl enable --now cloud-sql-proxy.service
+systemctl enable --now labtrack-backup.timer
+
+echo "[labtrack-ops] startup script done"

@@ -37,3 +37,13 @@ output "admin_login" {
     password_command = "gcloud secrets versions access latest --secret=labtrack-admin-password --project=${var.project_id}"
   }
 }
+
+output "ops_vm" {
+  description = "Ops VM details, null when enable_ops_vm is false"
+  value = var.enable_ops_vm ? {
+    name          = google_compute_instance.ops[0].name
+    zone          = google_compute_instance.ops[0].zone
+    backup_bucket = google_storage_bucket.backups[0].name
+    ssh_command   = "gcloud compute ssh ${google_compute_instance.ops[0].name} --zone=${google_compute_instance.ops[0].zone} --tunnel-through-iap"
+  } : null
+}
