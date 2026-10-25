@@ -34,5 +34,12 @@ def create_access_token(subject: str, role: str) -> str:
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
 
+# Tokens are issued and checked by different Cloud Run instances whose clocks can differ
+# slightly; without leeway PyJWT rejects a fresh token whose iat is a moment "in the future".
+CLOCK_SKEW_LEEWAY = timedelta(seconds=30)
+
+
 def decode_token(token: str) -> dict:
-    return jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+    return jwt.decode(
+        token, settings.jwt_secret, algorithms=[settings.jwt_algorithm], leeway=CLOCK_SKEW_LEEWAY
+    )

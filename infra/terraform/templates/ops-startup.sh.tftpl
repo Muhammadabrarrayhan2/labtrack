@@ -69,7 +69,17 @@ export PGPASSWORD
 pg_dump --host 127.0.0.1 --port 5432 --username ${db_user} --dbname ${db_name} \
   --format=custom --compress=6 --no-owner --file "$OUT"
 SIZE=$(stat -c %s "$OUT")
-gcloud storage cp "$OUT" "gs://${backup_bucket}/backups/labtrack-$STAMP.dump"
+# Upload through the JSON API: needs only storage.objects.create, so the VM stays
+# write-only (gcloud storage cp also asks for objects.get, which this account lacks).
+TOKEN=$(gcloud auth print-access-token)
+CODE=$(curl -sS -o /var/tmp/labtrack-upload.json -w '%%{http_code}' -X POST \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/octet-stream" \
+  --data-binary @"$OUT" \
+  "https://storage.googleapis.com/upload/storage/v1/b/${backup_bucket}/o?uploadType=media&name=backups/labtrack-$STAMP.dump")
+if [ "$CODE" != "200" ]; then
+  echo "labtrack-backup: upload failed HTTP $CODE: $(cat /var/tmp/labtrack-upload.json)"
+  exit 1
+fi
 echo "labtrack-backup: success object=gs://${backup_bucket}/backups/labtrack-$STAMP.dump size_bytes=$SIZE"
 SCRIPT
 chmod 0755 /usr/local/bin/labtrack-backup.sh

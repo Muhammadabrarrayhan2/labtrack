@@ -1,0 +1,85 @@
+LabTrack VM provisioning report, 2026-10-25T18:16:39Z
+
+==> Configuration from the Compute Engine API
++ gcloud compute instances describe labtrack-ops --project=labtrack-1026146 --zone=us-central1-a --format=yaml(name,status,machineType.basename(),zone.basename(),disks[0].source.basename(),networkInterfaces[0].networkIP,networkInterfaces[0].accessConfigs,serviceAccounts[0].email,shieldedInstanceConfig)
+disks:
+- source: labtrack-ops-boot
+machineType: e2-micro
+name: labtrack-ops
+networkInterfaces:
+- networkIP: 10.10.0.2
+serviceAccounts:
+- email: labtrack-ops@labtrack-1026146.iam.gserviceaccount.com
+shieldedInstanceConfig:
+  enableIntegrityMonitoring: true
+  enableSecureBoot: true
+  enableVtpm: true
+status: RUNNING
+zone: us-central1-a
+
+==> Inside the VM (via IAP)
++ gcloud compute ssh labtrack-ops --project=labtrack-1026146 --zone=us-central1-a --tunnel-through-iap --command=
+echo "== identity";   hostname; grep -E "^(PRETTY_NAME)=" /etc/os-release; uname -r
+echo "== cpu";        lscpu | grep -E "^(Model name|CPU\(s\)|Thread\(s\) per core|Hypervisor vendor|Virtualization type)"
+echo "== memory";     free -h
+echo "== disk";       df -h /
+echo "== network";    ip -br addr; ip route
+GW=$(ip route | awk "/^default/ {print \$3; exit}")
+echo "== gateway $GW"; ping -c 3 -W 2 "$GW" || echo "gateway did not answer ICMP"
+echo "== egress through Cloud NAT"
+curl -s -o /dev/null -m 10 -w "https://deb.debian.org HTTP %{http_code}\n" https://deb.debian.org || echo "egress failed"
+echo "== services";   systemctl is-active cloud-sql-proxy google-cloud-ops-agent labtrack-backup.timer || true
+
+WARNING: The private SSH key file for gcloud does not exist.
+WARNING: The public SSH key file for gcloud does not exist.
+WARNING: The PuTTY PPK SSH key file for gcloud does not exist.
+WARNING: You do not have an SSH key for gcloud.
+WARNING: SSH keygen will be executed to generate a key.
+The host key is not cached for this server:
+  compute.4877903092486765535 (port 22)
+You have no guarantee that the server is the computer you
+think it is.
+The server's ssh-ed25519 key fingerprint is:
+  ssh-ed25519 255 SHA256:vqzrqOW68i0OCsmxRffk1h71a8GexLW94DAFLhSgPI0
+If you trust this host, enter "y" to add the key to Plink's
+cache and carry on connecting.
+If you want to carry on connecting just once, without adding
+the key to the cache, enter "n".
+If you do not trust this host, press Return to abandon the
+connection.
+Store key in cache? (y/n, Return cancels connection, i for more info) == identity
+labtrack-ops
+PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"
+6.1.0-54-cloud-amd64
+== cpu
+CPU(s):                                  2
+Model name:                              Intel(R) Xeon(R) CPU @ 2.20GHz
+Thread(s) per core:                      2
+Hypervisor vendor:                       KVM
+Virtualization type:                     full
+== memory
+               total        used        free      shared  buff/cache   available
+Mem:           969Mi       474Mi        62Mi       544Ki       574Mi       495Mi
+Swap:             0B          0B          0B
+== disk
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1       9.7G  2.8G  6.4G  30% /
+== network
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+ens4             UP             10.10.0.2/32 metric 100 fe80::4001:aff:fe0a:2/64 
+default via 10.10.0.1 dev ens4 proto dhcp src 10.10.0.2 metric 100 
+10.10.0.1 dev ens4 proto dhcp scope link src 10.10.0.2 metric 100 
+169.254.169.254 via 10.10.0.1 dev ens4 proto dhcp src 10.10.0.2 metric 100 
+== gateway 10.10.0.1
+PING 10.10.0.1 (10.10.0.1) 56(84) bytes of data.
+
+--- 10.10.0.1 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2042ms
+
+gateway did not answer ICMP
+== egress through Cloud NAT
+https://deb.debian.org HTTP 200
+== services
+active
+active
+active

@@ -1,0 +1,244 @@
+random_id.suffix: Creating...
+random_id.suffix: Creation complete after 0s [id=9vc]
+random_password.db: Creating...
+random_password.jwt: Creating...
+random_password.admin: Creating...
+random_password.db: Creation complete after 0s [id=none]
+random_password.jwt: Creation complete after 0s [id=none]
+random_password.admin: Creation complete after 0s [id=none]
+google_iam_workload_identity_pool.github: Creating...
+google_monitoring_custom_service.api: Creating...
+google_project_service.ops_apis["iap.googleapis.com"]: Creating...
+google_service_account.deployer: Creating...
+google_service_account.run: Creating...
+google_monitoring_notification_channel.email[0]: Creating...
+google_project_service.ops_apis["compute.googleapis.com"]: Creating...
+google_secret_manager_secret.s["admin-password"]: Creating...
+google_secret_manager_secret.s["db-password"]: Creating...
+google_storage_bucket.reports: Creating...
+google_storage_bucket.reports: Creation complete after 2s [id=labtrack-1026146-labtrack-reports]
+google_secret_manager_secret.s["jwt-secret"]: Creating...
+google_project_service.ops_apis["compute.googleapis.com"]: Creation complete after 4s [id=labtrack-1026146/compute.googleapis.com]
+google_sql_database_instance.db: Creating...
+google_iam_workload_identity_pool.github: Still creating... [10s elapsed]
+google_service_account.deployer: Still creating... [10s elapsed]
+google_project_service.ops_apis["iap.googleapis.com"]: Still creating... [10s elapsed]
+google_secret_manager_secret.s["db-password"]: Still creating... [10s elapsed]
+google_service_account.run: Still creating... [10s elapsed]
+google_monitoring_custom_service.api: Still creating... [10s elapsed]
+google_secret_manager_secret.s["admin-password"]: Still creating... [10s elapsed]
+google_monitoring_notification_channel.email[0]: Still creating... [10s elapsed]
+google_monitoring_custom_service.api: Creation complete after 12s [id=projects/746146134471/services/labtrack-api]
+google_storage_bucket.backups[0]: Creating...
+google_monitoring_notification_channel.email[0]: Creation complete after 12s [id=projects/labtrack-1026146/notificationChannels/10643236431717512686]
+google_service_account.ops[0]: Creating...
+google_secret_manager_secret.s["jwt-secret"]: Still creating... [10s elapsed]
+google_secret_manager_secret.s["db-password"]: Creation complete after 12s [id=projects/labtrack-1026146/secrets/labtrack-db-password]
+google_monitoring_slo.availability: Creating...
+google_monitoring_slo.availability: Creation complete after 1s [id=projects/746146134471/services/labtrack-api/serviceLevelObjectives/availability-30d]
+google_monitoring_slo.latency: Creating...
+google_secret_manager_secret.s["jwt-secret"]: Creation complete after 12s [id=projects/labtrack-1026146/secrets/labtrack-jwt-secret]
+google_monitoring_alert_policy.error_ratio[0]: Creating...
+google_monitoring_slo.latency: Creation complete after 1s [id=projects/746146134471/services/labtrack-api/serviceLevelObjectives/latency-800ms-30d]
+google_monitoring_alert_policy.slo_fast_burn[0]: Creating...
+google_secret_manager_secret.s["admin-password"]: Creation complete after 14s [id=projects/labtrack-1026146/secrets/labtrack-admin-password]
+google_secret_manager_secret_version.s["admin-password"]: Creating...
+google_storage_bucket.backups[0]: Creation complete after 2s [id=labtrack-1026146-labtrack-backups]
+google_secret_manager_secret_version.s["db-password"]: Creating...
+google_sql_database_instance.db: Still creating... [10s elapsed]
+google_monitoring_alert_policy.error_ratio[0]: Creation complete after 2s [id=projects/labtrack-1026146/alertPolicies/7088633554250347577]
+google_secret_manager_secret_version.s["jwt-secret"]: Creating...
+google_monitoring_alert_policy.slo_fast_burn[0]: Creation complete after 4s [id=projects/labtrack-1026146/alertPolicies/10506032069078912525]
+google_secret_manager_secret_version.s["db-password"]: Creation complete after 4s [id=projects/746146134471/secrets/labtrack-db-password/versions/1]
+google_secret_manager_secret_version.s["admin-password"]: Creation complete after 5s [id=projects/746146134471/secrets/labtrack-admin-password/versions/1]
+google_iam_workload_identity_pool.github: Still creating... [20s elapsed]
+google_service_account.run: Still creating... [20s elapsed]
+google_project_service.ops_apis["iap.googleapis.com"]: Still creating... [20s elapsed]
+google_service_account.deployer: Still creating... [20s elapsed]
+google_secret_manager_secret_version.s["jwt-secret"]: Creation complete after 5s [id=projects/746146134471/secrets/labtrack-jwt-secret/versions/1]
+google_service_account.ops[0]: Still creating... [10s elapsed]
+google_iam_workload_identity_pool.github: Creation complete after 23s [id=projects/labtrack-1026146/locations/global/workloadIdentityPools/labtrack-gh-f6f7]
+google_iam_workload_identity_pool_provider.github: Creating...
+google_sql_database_instance.db: Still creating... [20s elapsed]
+google_project_service.ops_apis["iap.googleapis.com"]: Creation complete after 25s [id=labtrack-1026146/iap.googleapis.com]
+google_compute_network.ops[0]: Creating...
+google_compute_resource_policy.ops_daily_snapshot[0]: Creating...
+google_compute_disk.ops_boot[0]: Creating...
+google_service_account.ops[0]: Creation complete after 13s [id=projects/labtrack-1026146/serviceAccounts/labtrack-ops@labtrack-1026146.iam.gserviceaccount.com]
+google_project_iam_member.ops_roles["roles/monitoring.metricWriter"]: Creating...
+google_secret_manager_secret_iam_member.ops_db_password[0]: Creating...
+google_project_iam_member.ops_roles["roles/cloudsql.client"]: Creating...
+google_service_account.deployer: Creation complete after 26s [id=projects/labtrack-1026146/serviceAccounts/labtrack-deployer@labtrack-1026146.iam.gserviceaccount.com]
+google_project_iam_member.ops_roles["roles/logging.logWriter"]: Creating...
+google_service_account.run: Still creating... [30s elapsed]
+google_compute_resource_policy.ops_daily_snapshot[0]: Creation complete after 5s [id=projects/labtrack-1026146/regions/us-central1/resourcePolicies/labtrack-ops-daily-snapshot]
+google_storage_bucket_iam_member.ops_backup_writer[0]: Creating...
+google_service_account.run: Creation complete after 31s [id=projects/labtrack-1026146/serviceAccounts/labtrack-run@labtrack-1026146.iam.gserviceaccount.com]
+google_service_account_iam_member.github_wif: Creating...
+google_secret_manager_secret_iam_member.ops_db_password[0]: Creation complete after 7s [id=projects/labtrack-1026146/secrets/labtrack-db-password/roles/secretmanager.secretAccessor/serviceAccount:labtrack-ops@labtrack-1026146.iam.gserviceaccount.com]
+google_project_iam_member.deployer_run: Creating...
+google_iam_workload_identity_pool_provider.github: Still creating... [10s elapsed]
+google_storage_bucket_iam_member.ops_backup_writer[0]: Creation complete after 4s [id=b/labtrack-1026146-labtrack-backups/roles/storage.objectCreator/serviceAccount:labtrack-ops@labtrack-1026146.iam.gserviceaccount.com]
+google_artifact_registry_repository_iam_member.deployer_push: Creating...
+google_sql_database_instance.db: Still creating... [30s elapsed]
+google_compute_network.ops[0]: Still creating... [10s elapsed]
+google_compute_disk.ops_boot[0]: Still creating... [10s elapsed]
+google_iam_workload_identity_pool_provider.github: Creation complete after 12s [id=projects/labtrack-1026146/locations/global/workloadIdentityPools/labtrack-gh-f6f7/providers/github]
+google_service_account_iam_member.deployer_act_as_run: Creating...
+google_project_iam_member.ops_roles["roles/logging.logWriter"]: Creation complete after 9s [id=labtrack-1026146/roles/logging.logWriter/serviceAccount:labtrack-ops@labtrack-1026146.iam.gserviceaccount.com]
+google_storage_bucket_iam_member.run_objects: Creating...
+google_project_iam_member.ops_roles["roles/cloudsql.client"]: Creation complete after 10s [id=labtrack-1026146/roles/cloudsql.client/serviceAccount:labtrack-ops@labtrack-1026146.iam.gserviceaccount.com]
+google_project_iam_member.run_roles["roles/logging.logWriter"]: Creating...
+google_project_iam_member.ops_roles["roles/monitoring.metricWriter"]: Still creating... [10s elapsed]
+google_project_iam_member.ops_roles["roles/monitoring.metricWriter"]: Creation complete after 11s [id=labtrack-1026146/roles/monitoring.metricWriter/serviceAccount:labtrack-ops@labtrack-1026146.iam.gserviceaccount.com]
+google_project_iam_member.run_roles["roles/monitoring.metricWriter"]: Creating...
+google_service_account_iam_member.github_wif: Creation complete after 6s [id=projects/labtrack-1026146/serviceAccounts/labtrack-deployer@labtrack-1026146.iam.gserviceaccount.com/roles/iam.workloadIdentityUser/principalSet://iam.googleapis.com/projects/746146134471/locations/global/workloadIdentityPools/labtrack-gh-f6f7/attribute.repository/Muhammadabrarrayhan2/labtrack]
+google_project_iam_member.run_roles["roles/cloudsql.client"]: Creating...
+google_storage_bucket_iam_member.run_objects: Creation complete after 4s [id=b/labtrack-1026146-labtrack-reports/roles/storage.objectAdmin/serviceAccount:labtrack-run@labtrack-1026146.iam.gserviceaccount.com]
+google_service_account_iam_member.run_self_sign: Creating...
+google_service_account_iam_member.deployer_act_as_run: Creation complete after 5s [id=projects/labtrack-1026146/serviceAccounts/labtrack-run@labtrack-1026146.iam.gserviceaccount.com/roles/iam.serviceAccountUser/serviceAccount:labtrack-deployer@labtrack-1026146.iam.gserviceaccount.com]
+google_secret_manager_secret_iam_member.run_access["db-password"]: Creating...
+google_artifact_registry_repository_iam_member.deployer_push: Creation complete after 6s [id=projects/labtrack-1026146/locations/asia-southeast2/repositories/labtrack/roles/artifactregistry.writer/serviceAccount:labtrack-deployer@labtrack-1026146.iam.gserviceaccount.com]
+google_secret_manager_secret_iam_member.run_access["jwt-secret"]: Creating...
+google_compute_disk.ops_boot[0]: Creation complete after 16s [id=projects/labtrack-1026146/zones/us-central1-a/disks/labtrack-ops-boot]
+google_secret_manager_secret_iam_member.run_access["admin-password"]: Creating...
+google_project_iam_member.deployer_run: Still creating... [10s elapsed]
+google_project_iam_member.deployer_run: Creation complete after 10s [id=labtrack-1026146/roles/run.developer/serviceAccount:labtrack-deployer@labtrack-1026146.iam.gserviceaccount.com]
+google_compute_disk_resource_policy_attachment.ops_boot_snapshot[0]: Creating...
+google_sql_database_instance.db: Still creating... [40s elapsed]
+google_service_account_iam_member.run_self_sign: Creation complete after 6s [id=projects/labtrack-1026146/serviceAccounts/labtrack-run@labtrack-1026146.iam.gserviceaccount.com/roles/iam.serviceAccountTokenCreator/serviceAccount:labtrack-run@labtrack-1026146.iam.gserviceaccount.com]
+google_compute_network.ops[0]: Still creating... [20s elapsed]
+google_project_iam_member.run_roles["roles/logging.logWriter"]: Still creating... [10s elapsed]
+google_secret_manager_secret_iam_member.run_access["db-password"]: Creation complete after 6s [id=projects/labtrack-1026146/secrets/labtrack-db-password/roles/secretmanager.secretAccessor/serviceAccount:labtrack-run@labtrack-1026146.iam.gserviceaccount.com]
+google_compute_disk_resource_policy_attachment.ops_boot_snapshot[0]: Creation complete after 4s [id=labtrack-1026146/us-central1-a/labtrack-ops-boot/labtrack-ops-daily-snapshot]
+google_project_iam_member.run_roles["roles/monitoring.metricWriter"]: Still creating... [10s elapsed]
+google_secret_manager_secret_iam_member.run_access["jwt-secret"]: Creation complete after 6s [id=projects/labtrack-1026146/secrets/labtrack-jwt-secret/roles/secretmanager.secretAccessor/serviceAccount:labtrack-run@labtrack-1026146.iam.gserviceaccount.com]
+google_project_iam_member.run_roles["roles/cloudsql.client"]: Still creating... [10s elapsed]
+google_compute_network.ops[0]: Creation complete after 22s [id=projects/labtrack-1026146/global/networks/labtrack-ops-vpc]
+google_compute_router.ops[0]: Creating...
+google_compute_firewall.ops_iap_ssh[0]: Creating...
+google_compute_subnetwork.ops[0]: Creating...
+google_secret_manager_secret_iam_member.run_access["admin-password"]: Creation complete after 7s [id=projects/labtrack-1026146/secrets/labtrack-admin-password/roles/secretmanager.secretAccessor/serviceAccount:labtrack-run@labtrack-1026146.iam.gserviceaccount.com]
+google_project_iam_member.run_roles["roles/cloudsql.client"]: Creation complete after 12s [id=labtrack-1026146/roles/cloudsql.client/serviceAccount:labtrack-run@labtrack-1026146.iam.gserviceaccount.com]
+google_project_iam_member.run_roles["roles/logging.logWriter"]: Creation complete after 14s [id=labtrack-1026146/roles/logging.logWriter/serviceAccount:labtrack-run@labtrack-1026146.iam.gserviceaccount.com]
+google_project_iam_member.run_roles["roles/monitoring.metricWriter"]: Creation complete after 14s [id=labtrack-1026146/roles/monitoring.metricWriter/serviceAccount:labtrack-run@labtrack-1026146.iam.gserviceaccount.com]
+google_compute_router.ops[0]: Creation complete after 4s [id=projects/labtrack-1026146/regions/us-central1/routers/labtrack-ops-router]
+google_compute_router_nat.ops[0]: Creating...
+google_sql_database_instance.db: Still creating... [50s elapsed]
+google_compute_subnetwork.ops[0]: Still creating... [10s elapsed]
+google_compute_firewall.ops_iap_ssh[0]: Still creating... [10s elapsed]
+google_compute_router_nat.ops[0]: Creation complete after 7s [id=labtrack-1026146/us-central1/labtrack-ops-router/labtrack-ops-nat]
+google_compute_firewall.ops_iap_ssh[0]: Creation complete after 12s [id=projects/labtrack-1026146/global/firewalls/labtrack-ops-allow-iap-ssh]
+google_compute_subnetwork.ops[0]: Creation complete after 16s [id=projects/labtrack-1026146/regions/us-central1/subnetworks/labtrack-ops-subnet]
+google_sql_database_instance.db: Still creating... [1m0s elapsed]
+google_sql_database_instance.db: Still creating... [1m10s elapsed]
+google_sql_database_instance.db: Still creating... [1m20s elapsed]
+google_sql_database_instance.db: Still creating... [1m30s elapsed]
+google_sql_database_instance.db: Still creating... [1m40s elapsed]
+google_sql_database_instance.db: Still creating... [1m50s elapsed]
+google_sql_database_instance.db: Still creating... [2m1s elapsed]
+google_sql_database_instance.db: Still creating... [2m11s elapsed]
+google_sql_database_instance.db: Still creating... [2m21s elapsed]
+google_sql_database_instance.db: Still creating... [2m31s elapsed]
+google_sql_database_instance.db: Still creating... [2m41s elapsed]
+google_sql_database_instance.db: Still creating... [2m51s elapsed]
+google_sql_database_instance.db: Still creating... [3m1s elapsed]
+google_sql_database_instance.db: Still creating... [3m11s elapsed]
+google_sql_database_instance.db: Still creating... [3m21s elapsed]
+google_sql_database_instance.db: Still creating... [3m31s elapsed]
+google_sql_database_instance.db: Still creating... [3m41s elapsed]
+google_sql_database_instance.db: Still creating... [3m51s elapsed]
+google_sql_database_instance.db: Still creating... [4m1s elapsed]
+google_sql_database_instance.db: Still creating... [4m11s elapsed]
+google_sql_database_instance.db: Still creating... [4m21s elapsed]
+google_sql_database_instance.db: Still creating... [4m31s elapsed]
+google_sql_database_instance.db: Still creating... [4m41s elapsed]
+google_sql_database_instance.db: Still creating... [4m51s elapsed]
+google_sql_database_instance.db: Still creating... [5m1s elapsed]
+google_sql_database_instance.db: Still creating... [5m11s elapsed]
+google_sql_database_instance.db: Still creating... [5m21s elapsed]
+google_sql_database_instance.db: Still creating... [5m31s elapsed]
+google_sql_database_instance.db: Still creating... [5m41s elapsed]
+google_sql_database_instance.db: Still creating... [5m51s elapsed]
+google_sql_database_instance.db: Still creating... [6m1s elapsed]
+google_sql_database_instance.db: Still creating... [6m11s elapsed]
+google_sql_database_instance.db: Still creating... [6m21s elapsed]
+google_sql_database_instance.db: Still creating... [6m31s elapsed]
+google_sql_database_instance.db: Still creating... [6m41s elapsed]
+google_sql_database_instance.db: Still creating... [6m51s elapsed]
+google_sql_database_instance.db: Still creating... [7m1s elapsed]
+google_sql_database_instance.db: Still creating... [7m11s elapsed]
+google_sql_database_instance.db: Still creating... [7m21s elapsed]
+google_sql_database_instance.db: Still creating... [7m31s elapsed]
+google_sql_database_instance.db: Still creating... [7m41s elapsed]
+google_sql_database_instance.db: Still creating... [7m51s elapsed]
+google_sql_database_instance.db: Still creating... [8m1s elapsed]
+google_sql_database_instance.db: Still creating... [8m11s elapsed]
+google_sql_database_instance.db: Still creating... [8m21s elapsed]
+google_sql_database_instance.db: Still creating... [8m31s elapsed]
+google_sql_database_instance.db: Still creating... [8m41s elapsed]
+google_sql_database_instance.db: Still creating... [8m51s elapsed]
+google_sql_database_instance.db: Still creating... [9m1s elapsed]
+google_sql_database_instance.db: Still creating... [9m11s elapsed]
+google_sql_database_instance.db: Still creating... [9m21s elapsed]
+google_sql_database_instance.db: Still creating... [9m31s elapsed]
+google_sql_database_instance.db: Still creating... [9m41s elapsed]
+google_sql_database_instance.db: Still creating... [9m51s elapsed]
+google_sql_database_instance.db: Still creating... [10m1s elapsed]
+google_sql_database_instance.db: Still creating... [10m11s elapsed]
+google_sql_database_instance.db: Creation complete after 10m16s [id=labtrack-db-f6f7]
+google_sql_database.app: Creating...
+google_sql_user.app: Creating...
+google_monitoring_dashboard.labtrack: Creating...
+google_monitoring_alert_policy.sql_cpu[0]: Creating...
+google_monitoring_alert_policy.sql_connections[0]: Creating...
+google_monitoring_alert_policy.sql_disk[0]: Creating...
+google_monitoring_alert_policy.sql_cpu[0]: Creation complete after 2s [id=projects/labtrack-1026146/alertPolicies/8711349812838213639]
+google_monitoring_dashboard.labtrack: Creation complete after 3s [id=projects/746146134471/dashboards/3fc2008f-ce7e-4f8a-8ad9-77af81beaafa]
+google_monitoring_alert_policy.sql_connections[0]: Creation complete after 4s [id=projects/labtrack-1026146/alertPolicies/6004919709218542443]
+google_sql_database.app: Creation complete after 4s [id=projects/labtrack-1026146/instances/labtrack-db-f6f7/databases/labtrack]
+google_monitoring_alert_policy.sql_disk[0]: Creation complete after 6s [id=projects/labtrack-1026146/alertPolicies/1231644580830035699]
+google_sql_user.app: Creation complete after 7s [id=labtrack//labtrack-db-f6f7]
+google_compute_instance.ops[0]: Creating...
+google_cloud_run_v2_service.api: Creating...
+google_compute_instance.ops[0]: Still creating... [10s elapsed]
+google_cloud_run_v2_service.api: Still creating... [10s elapsed]
+google_compute_instance.ops[0]: Still creating... [20s elapsed]
+google_cloud_run_v2_service.api: Still creating... [20s elapsed]
+google_compute_instance.ops[0]: Still creating... [30s elapsed]
+google_cloud_run_v2_service.api: Still creating... [30s elapsed]
+google_cloud_run_v2_service.api: Creation complete after 32s [id=projects/labtrack-1026146/locations/asia-southeast2/services/labtrack-api]
+google_cloud_run_v2_service_iam_member.public: Creating...
+google_monitoring_uptime_check_config.health: Creating...
+google_monitoring_uptime_check_config.health: Creation complete after 1s [id=projects/labtrack-1026146/uptimeCheckConfigs/labtrack-api-health-7W38osVjHqw]
+google_monitoring_alert_policy.uptime: Creating...
+google_monitoring_alert_policy.uptime: Creation complete after 2s [id=projects/labtrack-1026146/alertPolicies/13932465097453227152]
+google_cloud_run_v2_service_iam_member.public: Creation complete after 5s [id=projects/labtrack-1026146/locations/asia-southeast2/services/labtrack-api/roles/run.invoker/allUsers]
+google_compute_instance.ops[0]: Creation complete after 37s [id=projects/labtrack-1026146/zones/us-central1-a/instances/labtrack-ops]
+
+Apply complete! Resources: 62 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+admin_login = {
+  "email" = "admin@labtrack.dev"
+  "password_command" = "gcloud secrets versions access latest --secret=labtrack-admin-password --project=labtrack-1026146"
+}
+api_url = "https://labtrack-api-b26757zszq-et.a.run.app"
+github_vars = {
+  "GCP_DEPLOYER_SA" = "labtrack-deployer@labtrack-1026146.iam.gserviceaccount.com"
+  "GCP_PROJECT_ID" = "labtrack-1026146"
+  "GCP_REGION" = "asia-southeast2"
+  "GCP_WIF_PROVIDER" = "projects/746146134471/locations/global/workloadIdentityPools/labtrack-gh-f6f7/providers/github"
+}
+image_repository = "asia-southeast2-docker.pkg.dev/labtrack-1026146/labtrack"
+ops_vm = {
+  "backup_bucket" = "labtrack-1026146-labtrack-backups"
+  "name" = "labtrack-ops"
+  "ssh_command" = "gcloud compute ssh labtrack-ops --zone=us-central1-a --tunnel-through-iap"
+  "zone" = "us-central1-a"
+}
+reports_bucket = "labtrack-1026146-labtrack-reports"
+runtime_service_account = "labtrack-run@labtrack-1026146.iam.gserviceaccount.com"
+sql_connection_name = "labtrack-1026146:asia-southeast2:labtrack-db-f6f7"
+uptime_check_id = "labtrack-api-health-7W38osVjHqw"

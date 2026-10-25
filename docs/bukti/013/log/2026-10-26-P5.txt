@@ -1,0 +1,25 @@
+a70f6272827f: Pushed
+6fcd13afd6fe: Pushed
+v1.0.1: digest: sha256:85be4fce75d98c9d516399d288c0a6369f301acd3d82e20c463e30f007f2bc57 size: 2203
+DONE
+ID                                    CREATE_TIME                DURATION  SOURCE                                                                                          IMAGES                                                               STATUS
+4c0c13c8-fc6f-466a-ae79-ca765e638bd4  2026-10-25T18:12:01+00:00  55S       gs://labtrack-1026146_cloudbuild/source/1792952032.470961-4de7a0c9802a4819bbdb8dc68078c47d.tgz  asia-southeast2-docker.pkg.dev/labtrack-1026146/labtrack/api:v1.0.1  SUCCESS
+
+==> Deploying asia-southeast2-docker.pkg.dev/labtrack-1026146/labtrack/api:v1.0.1 to Cloud Run service labtrack-api
++ gcloud run deploy labtrack-api --project=labtrack-1026146 --region=asia-southeast2 --image=asia-southeast2-docker.pkg.dev/labtrack-1026146/labtrack/api:v1.0.1 --quiet
+Deploying container to Cloud Run service [labtrack-api] in project [labtrack-1026146] region [asia-southeast2]
+Deploying...
+Creating Revision..........................................................................................................................done
+Routing traffic.....done
+Done.
+Service [labtrack-api] revision [labtrack-api-00002-59d] has been deployed and is serving 100 percent of traffic.
+Service URL: https://labtrack-api-746146134471.asia-southeast2.run.app
+
+==> Smoke test
++ curl -fsS https://labtrack-api-b26757zszq-et.a.run.app/health
+{"status":"ok","database":"ok","version":"1.0.1","environment":"production"}
+Deployed. Revisions:
++ gcloud run revisions list --service=labtrack-api --project=labtrack-1026146 --region=asia-southeast2 --limit=3
+   REVISION                ACTIVE  SERVICE       DEPLOYED                 DEPLOYED BY
++  labtrack-api-00002-59d  yes     labtrack-api  2026-10-25 18:13:22 UTC  abrarrayhan8@gmail.com
++  labtrack-api-00001-fbc          labtrack-api  2026-10-25 18:06:36 UTC  abrarrayhan8@gmail.com

@@ -1,0 +1,1451 @@
+google_project_service.apis["storage.googleapis.com"]: Refreshing state... [id=labtrack-1026146/storage.googleapis.com]
+google_project_service.apis["secretmanager.googleapis.com"]: Refreshing state... [id=labtrack-1026146/secretmanager.googleapis.com]
+google_project_service.apis["monitoring.googleapis.com"]: Refreshing state... [id=labtrack-1026146/monitoring.googleapis.com]
+google_project_service.apis["iamcredentials.googleapis.com"]: Refreshing state... [id=labtrack-1026146/iamcredentials.googleapis.com]
+google_project_service.apis["cloudbuild.googleapis.com"]: Refreshing state... [id=labtrack-1026146/cloudbuild.googleapis.com]
+google_project_service.apis["iam.googleapis.com"]: Refreshing state... [id=labtrack-1026146/iam.googleapis.com]
+google_project_service.apis["logging.googleapis.com"]: Refreshing state... [id=labtrack-1026146/logging.googleapis.com]
+google_project_service.apis["sqladmin.googleapis.com"]: Refreshing state... [id=labtrack-1026146/sqladmin.googleapis.com]
+google_project_service.apis["artifactregistry.googleapis.com"]: Refreshing state... [id=labtrack-1026146/artifactregistry.googleapis.com]
+google_project_service.apis["run.googleapis.com"]: Refreshing state... [id=labtrack-1026146/run.googleapis.com]
+google_project_service.apis["sts.googleapis.com"]: Refreshing state... [id=labtrack-1026146/sts.googleapis.com]
+google_artifact_registry_repository.repo: Refreshing state... [id=projects/labtrack-1026146/locations/asia-southeast2/repositories/labtrack]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # google_artifact_registry_repository_iam_member.deployer_push will be created
+  + resource "google_artifact_registry_repository_iam_member" "deployer_push" {
+      + etag       = (known after apply)
+      + id         = (known after apply)
+      + location   = "asia-southeast2"
+      + member     = "serviceAccount:labtrack-deployer@labtrack-1026146.iam.gserviceaccount.com"
+      + project    = (known after apply)
+      + repository = "labtrack"
+      + role       = "roles/artifactregistry.writer"
+    }
+
+  # google_cloud_run_v2_service.api will be created
+  + resource "google_cloud_run_v2_service" "api" {
+      + conditions              = (known after apply)
+      + create_time             = (known after apply)
+      + creator                 = (known after apply)
+      + delete_time             = (known after apply)
+      + deletion_protection     = false
+      + effective_annotations   = (known after apply)
+      + effective_labels        = {
+          + "goog-terraform-provisioned" = "true"
+        }
+      + etag                    = (known after apply)
+      + expire_time             = (known after apply)
+      + generation              = (known after apply)
+      + id                      = (known after apply)
+      + ingress                 = "INGRESS_TRAFFIC_ALL"
+      + last_modifier           = (known after apply)
+      + latest_created_revision = (known after apply)
+      + latest_ready_revision   = (known after apply)
+      + launch_stage            = (known after apply)
+      + location                = "asia-southeast2"
+      + name                    = "labtrack-api"
+      + observed_generation     = (known after apply)
+      + project                 = "labtrack-1026146"
+      + reconciling             = (known after apply)
+      + terminal_condition      = (known after apply)
+      + terraform_labels        = {
+          + "goog-terraform-provisioned" = "true"
+        }
+      + traffic_statuses        = (known after apply)
+      + uid                     = (known after apply)
+      + update_time             = (known after apply)
+      + uri                     = (known after apply)
+      + urls                    = (known after apply)
+
+      + template {
+          + max_instance_request_concurrency = 40
+          + service_account                  = "labtrack-run@labtrack-1026146.iam.gserviceaccount.com"
+          + timeout                          = "30s"
+
+          + containers {
+              + build_info = (known after apply)
+              + image      = "asia-southeast2-docker.pkg.dev/labtrack-1026146/labtrack/api:v1"
+
+              + env {
+                  + name  = "APP_ENV"
+                  + value = "production"
+                }
+              + env {
+                  + name  = "BOOTSTRAP_ADMIN_EMAIL"
+                  + value = "admin@labtrack.dev"
+                }
+              + env {
+                  + name  = "BOOTSTRAP_ADMIN_PASSWORD"
+                    # (1 unchanged attribute hidden)
+
+                  + value_source {
+                      + secret_key_ref {
+                          + secret  = "labtrack-admin-password"
+                          + version = "latest"
+                        }
+                    }
+                }
+              + env {
+                  + name  = "DB_NAME"
+                  + value = "labtrack"
+                }
+              + env {
+                  + name  = "DB_PASSWORD"
+                    # (1 unchanged attribute hidden)
+
+                  + value_source {
+                      + secret_key_ref {
+                          + secret  = "labtrack-db-password"
+                          + version = "latest"
+                        }
+                    }
+                }
+              + env {
+                  + name  = "DB_USER"
+                  + value = "labtrack"
+                }
+              + env {
+                  + name  = "GCS_BUCKET"
+                  + value = "labtrack-1026146-labtrack-reports"
+                }
+              + env {
+                  + name  = "INSTANCE_CONNECTION_NAME"
+                  + value = (known after apply)
+                }
+              + env {
+                  + name  = "JWT_SECRET"
+                    # (1 unchanged attribute hidden)
+
+                  + value_source {
+                      + secret_key_ref {
+                          + secret  = "labtrack-jwt-secret"
+                          + version = "latest"
+                        }
+                    }
+                }
+
+              + liveness_probe {
+                  + failure_threshold     = 3
+                  + initial_delay_seconds = 0
+                  + period_seconds        = 30
+                  + timeout_seconds       = 5
+
+                  + http_get {
+                      + path = "/health"
+                      + port = (known after apply)
+                    }
+                }
+
+              + ports {
+                  + container_port = 8080
+                  + name           = (known after apply)
+                }
+
+              + resources {
+                  + cpu_idle          = true
+                  + limits            = {
+                      + "cpu"    = "1"
+                      + "memory" = "512Mi"
+                    }
+                  + startup_cpu_boost = true
+                }
+
+              + startup_probe {
+                  + failure_threshold     = 12
+                  + initial_delay_seconds = 0
+                  + period_seconds        = 5
+                  + timeout_seconds       = 3
+
+                  + http_get {
+                      + path = "/health"
+                      + port = (known after apply)
+                    }
+                }
+
+              + volume_mounts {
+                  + mount_path = "/cloudsql"
+                  + name       = "cloudsql"
+                }
+            }
+
+          + scaling {
+              + max_instance_count = 3
+              + min_instance_count = 0
+            }
+
+          + volumes {
+              + name = "cloudsql"
+
+              + cloud_sql_instance {
+                  + instances = (known after apply)
+                }
+            }
+        }
+
+      + traffic (known after apply)
+    }
+
+  # google_cloud_run_v2_service_iam_member.public will be created
+  + resource "google_cloud_run_v2_service_iam_member" "public" {
+      + etag     = (known after apply)
+      + id       = (known after apply)
+      + location = "asia-southeast2"
+      + member   = "allUsers"
+      + name     = "labtrack-api"
+      + project  = (known after apply)
+      + role     = "roles/run.invoker"
+    }
+
+  # google_compute_disk.ops_boot[0] will be created
+  + resource "google_compute_disk" "ops_boot" {
+      + access_mode                    = (known after apply)
+      + create_snapshot_before_destroy = false
+      + creation_timestamp             = (known after apply)
+      + disk_id                        = (known after apply)
+      + effective_labels               = {
+          + "app"                        = "labtrack"
+          + "goog-terraform-provisioned" = "true"
+        }
+      + enable_confidential_compute    = (known after apply)
+      + id                             = (known after apply)
+      + image                          = "debian-cloud/debian-12"
+      + label_fingerprint              = (known after apply)
+      + labels                         = {
+          + "app" = "labtrack"
+        }
+      + last_attach_timestamp          = (known after apply)
+      + last_detach_timestamp          = (known after apply)
+      + licenses                       = (known after apply)
+      + name                           = "labtrack-ops-boot"
+      + physical_block_size_bytes      = (known after apply)
+      + project                        = "labtrack-1026146"
+      + provisioned_iops               = (known after apply)
+      + provisioned_throughput         = (known after apply)
+      + self_link                      = (known after apply)
+      + size                           = 10
+      + source_disk_id                 = (known after apply)
+      + source_image_id                = (known after apply)
+      + source_instant_snapshot_id     = (known after apply)
+      + source_snapshot_id             = (known after apply)
+      + terraform_labels               = {
+          + "app"                        = "labtrack"
+          + "goog-terraform-provisioned" = "true"
+        }
+      + type                           = "pd-standard"
+      + users                          = (known after apply)
+      + zone                           = "us-central1-a"
+
+      + guest_os_features (known after apply)
+    }
+
+  # google_compute_disk_resource_policy_attachment.ops_boot_snapshot[0] will be created
+  + resource "google_compute_disk_resource_policy_attachment" "ops_boot_snapshot" {
+      + disk    = "labtrack-ops-boot"
+      + id      = (known after apply)
+      + name    = "labtrack-ops-daily-snapshot"
+      + project = "labtrack-1026146"
+      + zone    = "us-central1-a"
+    }
+
+  # google_compute_firewall.ops_iap_ssh[0] will be created
+  + resource "google_compute_firewall" "ops_iap_ssh" {
+      + creation_timestamp = (known after apply)
+      + destination_ranges = (known after apply)
+      + direction          = "INGRESS"
+      + enable_logging     = (known after apply)
+      + id                 = (known after apply)
+      + name               = "labtrack-ops-allow-iap-ssh"
+      + network            = (known after apply)
+      + priority           = 1000
+      + project            = "labtrack-1026146"
+      + self_link          = (known after apply)
+      + source_ranges      = [
+          + "35.235.240.0/20",
+        ]
+      + target_tags        = [
+          + "labtrack-ops",
+        ]
+
+      + allow {
+          + ports    = [
+              + "22",
+            ]
+          + protocol = "tcp"
+        }
+    }
+
+  # google_compute_instance.ops[0] will be created
+  + resource "google_compute_instance" "ops" {
+      + allow_stopping_for_update = true
+      + can_ip_forward            = false
+      + cpu_platform              = (known after apply)
+      + creation_timestamp        = (known after apply)
+      + current_status            = (known after apply)
+      + deletion_protection       = false
+      + effective_labels          = {
+          + "app"                        = "labtrack"
+          + "goog-terraform-provisioned" = "true"
+        }
+      + id                        = (known after apply)
+      + instance_id               = (known after apply)
+      + label_fingerprint         = (known after apply)
+      + labels                    = {
+          + "app" = "labtrack"
+        }
+      + machine_type              = "e2-micro"
+      + metadata                  = {
+          + "enable-oslogin" = "TRUE"
+        }
+      + metadata_fingerprint      = (known after apply)
+      + metadata_startup_script   = (known after apply)
+      + min_cpu_platform          = (known after apply)
+      + name                      = "labtrack-ops"
+      + project                   = "labtrack-1026146"
+      + self_link                 = (known after apply)
+      + tags                      = [
+          + "labtrack-ops",
+        ]
+      + tags_fingerprint          = (known after apply)
+      + terraform_labels          = {
+          + "app"                        = "labtrack"
+          + "goog-terraform-provisioned" = "true"
+        }
+      + zone                      = "us-central1-a"
+
+      + boot_disk {
+          + auto_delete                = false
+          + device_name                = (known after apply)
+          + disk_encryption_key_sha256 = (known after apply)
+          + guest_os_features          = (known after apply)
+          + kms_key_self_link          = (known after apply)
+          + mode                       = "READ_WRITE"
+          + source                     = (known after apply)
+
+          + initialize_params (known after apply)
+        }
+
+      + confidential_instance_config (known after apply)
+
+      + guest_accelerator (known after apply)
+
+      + network_interface {
+          + internal_ipv6_prefix_length = (known after apply)
+          + ipv6_access_type            = (known after apply)
+          + ipv6_address                = (known after apply)
+          + name                        = (known after apply)
+          + network                     = (known after apply)
+          + network_attachment          = (known after apply)
+          + network_ip                  = (known after apply)
+          + stack_type                  = (known after apply)
+          + subnetwork                  = (known after apply)
+          + subnetwork_project          = (known after apply)
+        }
+
+      + reservation_affinity (known after apply)
+
+      + scheduling (known after apply)
+
+      + service_account {
+          + email  = "labtrack-ops@labtrack-1026146.iam.gserviceaccount.com"
+          + scopes = [
+              + "https://www.googleapis.com/auth/cloud-platform",
+            ]
+        }
+
+      + shielded_instance_config {
+          + enable_integrity_monitoring = true
+          + enable_secure_boot          = true
+          + enable_vtpm                 = true
+        }
+    }
+
+  # google_compute_network.ops[0] will be created
+  + resource "google_compute_network" "ops" {
+      + auto_create_subnetworks                   = false
+      + bgp_always_compare_med                    = (known after apply)
+      + bgp_best_path_selection_mode              = (known after apply)
+      + bgp_inter_region_cost                     = (known after apply)
+      + delete_default_routes_on_create           = false
+      + gateway_ipv4                              = (known after apply)
+      + id                                        = (known after apply)
+      + internal_ipv6_range                       = (known after apply)
+      + mtu                                       = (known after apply)
+      + name                                      = "labtrack-ops-vpc"
+      + network_firewall_policy_enforcement_order = "AFTER_CLASSIC_FIREWALL"
+      + network_id                                = (known after apply)
+      + numeric_id                                = (known after apply)
+      + project                                   = "labtrack-1026146"
+      + routing_mode                              = (known after apply)
+      + self_link                                 = (known after apply)
+    }
+
+  # google_compute_resource_policy.ops_daily_snapshot[0] will be created
+  + resource "google_compute_resource_policy" "ops_daily_snapshot" {
+      + id        = (known after apply)
+      + name      = "labtrack-ops-daily-snapshot"
+      + project   = "labtrack-1026146"
+      + region    = "us-central1"
+      + self_link = (known after apply)
+
+      + snapshot_schedule_policy {
+          + retention_policy {
+              + max_retention_days    = 7
+              + on_source_disk_delete = "KEEP_AUTO_SNAPSHOTS"
+            }
+          + schedule {
+              + daily_schedule {
+                  + days_in_cycle = 1
+                  + start_time    = "20:00"
+                }
+            }
+          + snapshot_properties {
+              + labels            = {
+                  + "app" = "labtrack"
+                }
+              + storage_locations = [
+                  + "us-central1",
+                ]
+            }
+        }
+    }
+
+  # google_compute_router.ops[0] will be created
+  + resource "google_compute_router" "ops" {
+      + creation_timestamp = (known after apply)
+      + id                 = (known after apply)
+      + name               = "labtrack-ops-router"
+      + network            = (known after apply)
+      + project            = "labtrack-1026146"
+      + region             = "us-central1"
+      + self_link          = (known after apply)
+    }
+
+  # google_compute_router_nat.ops[0] will be created
+  + resource "google_compute_router_nat" "ops" {
+      + auto_network_tier                   = (known after apply)
+      + drain_nat_ips                       = (known after apply)
+      + enable_dynamic_port_allocation      = (known after apply)
+      + enable_endpoint_independent_mapping = (known after apply)
+      + endpoint_types                      = (known after apply)
+      + icmp_idle_timeout_sec               = 30
+      + id                                  = (known after apply)
+      + min_ports_per_vm                    = (known after apply)
+      + name                                = "labtrack-ops-nat"
+      + nat_ip_allocate_option              = "AUTO_ONLY"
+      + nat_ips                             = (known after apply)
+      + project                             = "labtrack-1026146"
+      + region                              = "us-central1"
+      + router                              = "labtrack-ops-router"
+      + source_subnetwork_ip_ranges_to_nat  = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+      + tcp_established_idle_timeout_sec    = 1200
+      + tcp_time_wait_timeout_sec           = 120
+      + tcp_transitory_idle_timeout_sec     = 30
+      + type                                = "PUBLIC"
+      + udp_idle_timeout_sec                = 30
+
+      + log_config {
+          + enable = true
+          + filter = "ERRORS_ONLY"
+        }
+    }
+
+  # google_compute_subnetwork.ops[0] will be created
+  + resource "google_compute_subnetwork" "ops" {
+      + creation_timestamp         = (known after apply)
+      + enable_flow_logs           = (known after apply)
+      + external_ipv6_prefix       = (known after apply)
+      + fingerprint                = (known after apply)
+      + gateway_address            = (known after apply)
+      + id                         = (known after apply)
+      + internal_ipv6_prefix       = (known after apply)
+      + ip_cidr_range              = "10.10.0.0/24"
+      + ipv6_cidr_range            = (known after apply)
+      + ipv6_gce_endpoint          = (known after apply)
+      + name                       = "labtrack-ops-subnet"
+      + network                    = (known after apply)
+      + private_ip_google_access   = true
+      + private_ipv6_google_access = (known after apply)
+      + project                    = "labtrack-1026146"
+      + purpose                    = (known after apply)
+      + region                     = "us-central1"
+      + self_link                  = (known after apply)
+      + stack_type                 = (known after apply)
+      + state                      = (known after apply)
+      + subnetwork_id              = (known after apply)
+
+      + secondary_ip_range (known after apply)
+    }
+
+  # google_iam_workload_identity_pool.github will be created
+  + resource "google_iam_workload_identity_pool" "github" {
+      + display_name              = "LabTrack GitHub Actions"
+      + id                        = (known after apply)
+      + name                      = (known after apply)
+      + project                   = "labtrack-1026146"
+      + state                     = (known after apply)
+      + workload_identity_pool_id = (known after apply)
+    }
+
+  # google_iam_workload_identity_pool_provider.github will be created
+  + resource "google_iam_workload_identity_pool_provider" "github" {
+      + attribute_condition                = "assertion.repository == \"Muhammadabrarrayhan2/labtrack\""
+      + attribute_mapping                  = {
+          + "attribute.ref"        = "assertion.ref"
+          + "attribute.repository" = "assertion.repository"
+          + "google.subject"       = "assertion.sub"
+        }
+      + display_name                       = "GitHub OIDC"
+      + id                                 = (known after apply)
+      + name                               = (known after apply)
+      + project                            = "labtrack-1026146"
+      + state                              = (known after apply)
+      + workload_identity_pool_id          = (known after apply)
+      + workload_identity_pool_provider_id = "github"
+
+      + oidc {
+          + issuer_uri = "https://token.actions.githubusercontent.com"
+        }
+    }
+
+  # google_monitoring_alert_policy.error_ratio[0] will be created
+  + resource "google_monitoring_alert_policy" "error_ratio" {
+      + combiner              = "OR"
+      + creation_record       = (known after apply)
+      + display_name          = "LabTrack API: 5xx ratio > 5% for 5 minutes"
+      + enabled               = true
+      + id                    = (known after apply)
+      + name                  = (known after apply)
+      + notification_channels = (known after apply)
+      + project               = "labtrack-1026146"
+      + severity              = "ERROR"
+
+      + conditions {
+          + display_name = "5xx / all requests > 0.05"
+          + name         = (known after apply)
+
+          + condition_threshold {
+              + comparison         = "COMPARISON_GT"
+              + denominator_filter = "metric.type=\"run.googleapis.com/request_count\" AND resource.type=\"cloud_run_revision\" AND resource.label.\"service_name\"=\"labtrack-api\""
+              + duration           = "300s"
+              + filter             = "metric.type=\"run.googleapis.com/request_count\" AND resource.type=\"cloud_run_revision\" AND resource.label.\"service_name\"=\"labtrack-api\" AND metric.label.\"response_code_class\"=\"5xx\""
+              + threshold_value    = 0.05
+
+              + aggregations {
+                  + alignment_period     = "60s"
+                  + cross_series_reducer = "REDUCE_SUM"
+                  + per_series_aligner   = "ALIGN_RATE"
+                }
+
+              + denominator_aggregations {
+                  + alignment_period     = "60s"
+                  + cross_series_reducer = "REDUCE_SUM"
+                  + per_series_aligner   = "ALIGN_RATE"
+                }
+            }
+        }
+
+      + documentation {
+          + content   = "More than 5% of LabTrack requests returned 5xx for 5 minutes. Query Logs Explorer for severity>=ERROR and the request_id values. See docs/06-sop-dukungan-teknis.md."
+          + mime_type = "text/markdown"
+        }
+    }
+
+  # google_monitoring_alert_policy.slo_fast_burn[0] will be created
+  + resource "google_monitoring_alert_policy" "slo_fast_burn" {
+      + combiner              = "OR"
+      + creation_record       = (known after apply)
+      + display_name          = "LabTrack SLO: availability fast burn (10x over 1h)"
+      + enabled               = true
+      + id                    = (known after apply)
+      + name                  = (known after apply)
+      + notification_channels = (known after apply)
+      + project               = "labtrack-1026146"
+      + severity              = "CRITICAL"
+
+      + conditions {
+          + display_name = "Error budget burn rate > 10 over 1 hour"
+          + name         = (known after apply)
+
+          + condition_threshold {
+              + comparison      = "COMPARISON_GT"
+              + duration        = "0s"
+              + filter          = (known after apply)
+              + threshold_value = 10
+            }
+        }
+
+      + documentation {
+          + content   = "The availability SLO is burning error budget 10x faster than allowed. Follow docs/06-sop-dukungan-teknis.md, severity P1/P2. Check Cloud Run revisions, recent deploys and /health."
+          + mime_type = "text/markdown"
+        }
+    }
+
+  # google_monitoring_alert_policy.sql_connections[0] will be created
+  + resource "google_monitoring_alert_policy" "sql_connections" {
+      + combiner              = "OR"
+      + creation_record       = (known after apply)
+      + display_name          = "LabTrack Cloud SQL: connections near limit"
+      + enabled               = true
+      + id                    = (known after apply)
+      + name                  = (known after apply)
+      + notification_channels = (known after apply)
+      + project               = "labtrack-1026146"
+      + severity              = "WARNING"
+
+      + conditions {
+          + display_name = "num_backends > 20"
+          + name         = (known after apply)
+
+          + condition_threshold {
+              + comparison      = "COMPARISON_GT"
+              + duration        = "120s"
+              + filter          = (known after apply)
+              + threshold_value = 20
+
+              + aggregations {
+                  + alignment_period     = "60s"
+                  + cross_series_reducer = "REDUCE_SUM"
+                  + group_by_fields      = [
+                      + "resource.label.database_id",
+                    ]
+                  + per_series_aligner   = "ALIGN_MAX"
+                }
+            }
+        }
+
+      + documentation {
+          + content   = "PostgreSQL connections are close to max_connections (25 on db-f1-micro). Budget: max_instances x (pool_size + max_overflow) = 3 x 7 = 21. Check for a revision rollout overlap or a raised max instances."
+          + mime_type = "text/markdown"
+        }
+    }
+
+  # google_monitoring_alert_policy.sql_cpu[0] will be created
+  + resource "google_monitoring_alert_policy" "sql_cpu" {
+      + combiner              = "OR"
+      + creation_record       = (known after apply)
+      + display_name          = "LabTrack Cloud SQL: CPU > 80% for 10 minutes"
+      + enabled               = true
+      + id                    = (known after apply)
+      + name                  = (known after apply)
+      + notification_channels = (known after apply)
+      + project               = "labtrack-1026146"
+      + severity              = "WARNING"
+
+      + conditions {
+          + display_name = "cpu/utilization > 0.8"
+          + name         = (known after apply)
+
+          + condition_threshold {
+              + comparison      = "COMPARISON_GT"
+              + duration        = "600s"
+              + filter          = (known after apply)
+              + threshold_value = 0.8
+
+              + aggregations {
+                  + alignment_period   = "60s"
+                  + per_series_aligner = "ALIGN_MEAN"
+                }
+            }
+        }
+
+      + documentation {
+          + content   = "Cloud SQL CPU has been above 80% for 10 minutes. Check Query Insights for slow queries; db-f1-micro has a shared vCPU. See docs/03-kebutuhan-perangkat-keras.md for sizing."
+          + mime_type = "text/markdown"
+        }
+    }
+
+  # google_monitoring_alert_policy.sql_disk[0] will be created
+  + resource "google_monitoring_alert_policy" "sql_disk" {
+      + combiner              = "OR"
+      + creation_record       = (known after apply)
+      + display_name          = "LabTrack Cloud SQL: disk utilization > 80%"
+      + enabled               = true
+      + id                    = (known after apply)
+      + name                  = (known after apply)
+      + notification_channels = (known after apply)
+      + project               = "labtrack-1026146"
+      + severity              = "WARNING"
+
+      + conditions {
+          + display_name = "disk/utilization > 0.8"
+          + name         = (known after apply)
+
+          + condition_threshold {
+              + comparison      = "COMPARISON_GT"
+              + duration        = "300s"
+              + filter          = (known after apply)
+              + threshold_value = 0.8
+
+              + aggregations {
+                  + alignment_period   = "300s"
+                  + per_series_aligner = "ALIGN_MEAN"
+                }
+            }
+        }
+
+      + documentation {
+          + content   = "Cloud SQL disk is above 80%. Storage auto-resize is on, so this mostly signals unexpected growth. Check table sizes before the disk grows further."
+          + mime_type = "text/markdown"
+        }
+    }
+
+  # google_monitoring_alert_policy.uptime will be created
+  + resource "google_monitoring_alert_policy" "uptime" {
+      + combiner              = "OR"
+      + creation_record       = (known after apply)
+      + display_name          = "LabTrack API is down"
+      + enabled               = true
+      + id                    = (known after apply)
+      + name                  = (known after apply)
+      + notification_channels = (known after apply)
+      + project               = "labtrack-1026146"
+
+      + conditions {
+          + display_name = "Uptime check /health failing"
+          + name         = (known after apply)
+
+          + condition_threshold {
+              + comparison      = "COMPARISON_GT"
+              + duration        = "60s"
+              + filter          = (known after apply)
+              + threshold_value = 1
+
+              + aggregations {
+                  + alignment_period     = "1200s"
+                  + cross_series_reducer = "REDUCE_COUNT_FALSE"
+                  + group_by_fields      = [
+                      + "resource.label.*",
+                    ]
+                  + per_series_aligner   = "ALIGN_NEXT_OLDER"
+                }
+
+              + trigger {
+                  + count = 1
+                }
+            }
+        }
+
+      + documentation {
+          + content   = "LabTrack /health has failed from more than one uptime checker region. Check Cloud Run revisions and Cloud SQL status."
+          + mime_type = "text/markdown"
+        }
+    }
+
+  # google_monitoring_custom_service.api will be created
+  + resource "google_monitoring_custom_service" "api" {
+      + display_name = "LabTrack API"
+      + id           = (known after apply)
+      + name         = (known after apply)
+      + project      = "labtrack-1026146"
+      + service_id   = "labtrack-api"
+
+      + telemetry {
+          + resource_name = "//run.googleapis.com/projects/labtrack-1026146/locations/asia-southeast2/services/labtrack-api"
+        }
+    }
+
+  # google_monitoring_dashboard.labtrack will be created
+  + resource "google_monitoring_dashboard" "labtrack" {
+      + dashboard_json = (known after apply)
+      + id             = (known after apply)
+      + project        = "labtrack-1026146"
+    }
+
+  # google_monitoring_notification_channel.email[0] will be created
+  + resource "google_monitoring_notification_channel" "email" {
+      + display_name        = "LabTrack alerts"
+      + enabled             = true
+      + force_delete        = false
+      + id                  = (known after apply)
+      + labels              = {
+          + "email_address" = "abrarrayhan8@gmail.com"
+        }
+      + name                = (known after apply)
+      + project             = "labtrack-1026146"
+      + type                = "email"
+      + verification_status = (known after apply)
+    }
+
+  # google_monitoring_slo.availability will be created
+  + resource "google_monitoring_slo" "availability" {
+      + display_name        = "Availability 99.5% (non-5xx requests, 30 day rolling)"
+      + goal                = 0.995
+      + id                  = (known after apply)
+      + name                = (known after apply)
+      + project             = "labtrack-1026146"
+      + rolling_period_days = 30
+      + service             = "labtrack-api"
+      + slo_id              = "availability-30d"
+
+      + request_based_sli {
+          + good_total_ratio {
+              + bad_service_filter   = "metric.type=\"run.googleapis.com/request_count\" AND resource.type=\"cloud_run_revision\" AND resource.label.\"service_name\"=\"labtrack-api\" AND metric.label.\"response_code_class\"=\"5xx\""
+              + total_service_filter = "metric.type=\"run.googleapis.com/request_count\" AND resource.type=\"cloud_run_revision\" AND resource.label.\"service_name\"=\"labtrack-api\""
+            }
+        }
+    }
+
+  # google_monitoring_slo.latency will be created
+  + resource "google_monitoring_slo" "latency" {
+      + display_name        = "Latency 95% of requests < 800 ms (30 day rolling)"
+      + goal                = 0.95
+      + id                  = (known after apply)
+      + name                = (known after apply)
+      + project             = "labtrack-1026146"
+      + rolling_period_days = 30
+      + service             = "labtrack-api"
+      + slo_id              = "latency-800ms-30d"
+
+      + request_based_sli {
+          + distribution_cut {
+              + distribution_filter = "metric.type=\"run.googleapis.com/request_latencies\" AND resource.type=\"cloud_run_revision\" AND resource.label.\"service_name\"=\"labtrack-api\""
+
+              + range {
+                  + max = 800
+                }
+            }
+        }
+    }
+
+  # google_monitoring_uptime_check_config.health will be created
+  + resource "google_monitoring_uptime_check_config" "health" {
+      + checker_type    = (known after apply)
+      + display_name    = "LabTrack API /health"
+      + id              = (known after apply)
+      + name            = (known after apply)
+      + period          = "300s"
+      + project         = "labtrack-1026146"
+      + timeout         = "10s"
+      + uptime_check_id = (known after apply)
+
+      + http_check {
+          + headers        = (known after apply)
+          + path           = "/health"
+          + port           = 443
+          + request_method = "GET"
+          + use_ssl        = true
+          + validate_ssl   = true
+
+          + accepted_response_status_codes {
+              + status_class = "STATUS_CLASS_2XX"
+            }
+        }
+
+      + monitored_resource {
+          + labels = (known after apply)
+          + type   = "uptime_url"
+        }
+    }
+
+  # google_project_iam_member.deployer_run will be created
+  + resource "google_project_iam_member" "deployer_run" {
+      + etag    = (known after apply)
+      + id      = (known after apply)
+      + member  = "serviceAccount:labtrack-deployer@labtrack-1026146.iam.gserviceaccount.com"
+      + project = "labtrack-1026146"
+      + role    = "roles/run.developer"
+    }
+
+  # google_project_iam_member.ops_roles["roles/cloudsql.client"] will be created
+  + resource "google_project_iam_member" "ops_roles" {
+      + etag    = (known after apply)
+      + id      = (known after apply)
+      + member  = "serviceAccount:labtrack-ops@labtrack-1026146.iam.gserviceaccount.com"
+      + project = "labtrack-1026146"
+      + role    = "roles/cloudsql.client"
+    }
+
+  # google_project_iam_member.ops_roles["roles/logging.logWriter"] will be created
+  + resource "google_project_iam_member" "ops_roles" {
+      + etag    = (known after apply)
+      + id      = (known after apply)
+      + member  = "serviceAccount:labtrack-ops@labtrack-1026146.iam.gserviceaccount.com"
+      + project = "labtrack-1026146"
+      + role    = "roles/logging.logWriter"
+    }
+
+  # google_project_iam_member.ops_roles["roles/monitoring.metricWriter"] will be created
+  + resource "google_project_iam_member" "ops_roles" {
+      + etag    = (known after apply)
+      + id      = (known after apply)
+      + member  = "serviceAccount:labtrack-ops@labtrack-1026146.iam.gserviceaccount.com"
+      + project = "labtrack-1026146"
+      + role    = "roles/monitoring.metricWriter"
+    }
+
+  # google_project_iam_member.run_roles["roles/cloudsql.client"] will be created
+  + resource "google_project_iam_member" "run_roles" {
+      + etag    = (known after apply)
+      + id      = (known after apply)
+      + member  = "serviceAccount:labtrack-run@labtrack-1026146.iam.gserviceaccount.com"
+      + project = "labtrack-1026146"
+      + role    = "roles/cloudsql.client"
+    }
+
+  # google_project_iam_member.run_roles["roles/logging.logWriter"] will be created
+  + resource "google_project_iam_member" "run_roles" {
+      + etag    = (known after apply)
+      + id      = (known after apply)
+      + member  = "serviceAccount:labtrack-run@labtrack-1026146.iam.gserviceaccount.com"
+      + project = "labtrack-1026146"
+      + role    = "roles/logging.logWriter"
+    }
+
+  # google_project_iam_member.run_roles["roles/monitoring.metricWriter"] will be created
+  + resource "google_project_iam_member" "run_roles" {
+      + etag    = (known after apply)
+      + id      = (known after apply)
+      + member  = "serviceAccount:labtrack-run@labtrack-1026146.iam.gserviceaccount.com"
+      + project = "labtrack-1026146"
+      + role    = "roles/monitoring.metricWriter"
+    }
+
+  # google_project_service.ops_apis["compute.googleapis.com"] will be created
+  + resource "google_project_service" "ops_apis" {
+      + disable_on_destroy = false
+      + id                 = (known after apply)
+      + project            = "labtrack-1026146"
+      + service            = "compute.googleapis.com"
+    }
+
+  # google_project_service.ops_apis["iap.googleapis.com"] will be created
+  + resource "google_project_service" "ops_apis" {
+      + disable_on_destroy = false
+      + id                 = (known after apply)
+      + project            = "labtrack-1026146"
+      + service            = "iap.googleapis.com"
+    }
+
+  # google_secret_manager_secret.s["admin-password"] will be created
+  + resource "google_secret_manager_secret" "s" {
+      + create_time           = (known after apply)
+      + deletion_protection   = false
+      + effective_annotations = (known after apply)
+      + effective_labels      = {
+          + "goog-terraform-provisioned" = "true"
+        }
+      + expire_time           = (known after apply)
+      + id                    = (known after apply)
+      + name                  = (known after apply)
+      + project               = "labtrack-1026146"
+      + secret_id             = "labtrack-admin-password"
+      + terraform_labels      = {
+          + "goog-terraform-provisioned" = "true"
+        }
+
+      + replication {
+          + auto {
+            }
+        }
+    }
+
+  # google_secret_manager_secret.s["db-password"] will be created
+  + resource "google_secret_manager_secret" "s" {
+      + create_time           = (known after apply)
+      + deletion_protection   = false
+      + effective_annotations = (known after apply)
+      + effective_labels      = {
+          + "goog-terraform-provisioned" = "true"
+        }
+      + expire_time           = (known after apply)
+      + id                    = (known after apply)
+      + name                  = (known after apply)
+      + project               = "labtrack-1026146"
+      + secret_id             = "labtrack-db-password"
+      + terraform_labels      = {
+          + "goog-terraform-provisioned" = "true"
+        }
+
+      + replication {
+          + auto {
+            }
+        }
+    }
+
+  # google_secret_manager_secret.s["jwt-secret"] will be created
+  + resource "google_secret_manager_secret" "s" {
+      + create_time           = (known after apply)
+      + deletion_protection   = false
+      + effective_annotations = (known after apply)
+      + effective_labels      = {
+          + "goog-terraform-provisioned" = "true"
+        }
+      + expire_time           = (known after apply)
+      + id                    = (known after apply)
+      + name                  = (known after apply)
+      + project               = "labtrack-1026146"
+      + secret_id             = "labtrack-jwt-secret"
+      + terraform_labels      = {
+          + "goog-terraform-provisioned" = "true"
+        }
+
+      + replication {
+          + auto {
+            }
+        }
+    }
+
+  # google_secret_manager_secret_iam_member.ops_db_password[0] will be created
+  + resource "google_secret_manager_secret_iam_member" "ops_db_password" {
+      + etag      = (known after apply)
+      + id        = (known after apply)
+      + member    = "serviceAccount:labtrack-ops@labtrack-1026146.iam.gserviceaccount.com"
+      + project   = (known after apply)
+      + role      = "roles/secretmanager.secretAccessor"
+      + secret_id = (known after apply)
+    }
+
+  # google_secret_manager_secret_iam_member.run_access["admin-password"] will be created
+  + resource "google_secret_manager_secret_iam_member" "run_access" {
+      + etag      = (known after apply)
+      + id        = (known after apply)
+      + member    = "serviceAccount:labtrack-run@labtrack-1026146.iam.gserviceaccount.com"
+      + project   = (known after apply)
+      + role      = "roles/secretmanager.secretAccessor"
+      + secret_id = (known after apply)
+    }
+
+  # google_secret_manager_secret_iam_member.run_access["db-password"] will be created
+  + resource "google_secret_manager_secret_iam_member" "run_access" {
+      + etag      = (known after apply)
+      + id        = (known after apply)
+      + member    = "serviceAccount:labtrack-run@labtrack-1026146.iam.gserviceaccount.com"
+      + project   = (known after apply)
+      + role      = "roles/secretmanager.secretAccessor"
+      + secret_id = (known after apply)
+    }
+
+  # google_secret_manager_secret_iam_member.run_access["jwt-secret"] will be created
+  + resource "google_secret_manager_secret_iam_member" "run_access" {
+      + etag      = (known after apply)
+      + id        = (known after apply)
+      + member    = "serviceAccount:labtrack-run@labtrack-1026146.iam.gserviceaccount.com"
+      + project   = (known after apply)
+      + role      = "roles/secretmanager.secretAccessor"
+      + secret_id = (known after apply)
+    }
+
+  # google_secret_manager_secret_version.s["admin-password"] will be created
+  + resource "google_secret_manager_secret_version" "s" {
+      + create_time            = (known after apply)
+      + deletion_policy        = "DELETE"
+      + destroy_time           = (known after apply)
+      + enabled                = true
+      + id                     = (known after apply)
+      + is_secret_data_base64  = false
+      + name                   = (known after apply)
+      + secret                 = (known after apply)
+      + secret_data            = (sensitive value)
+      + secret_data_wo_version = 0
+      + version                = (known after apply)
+    }
+
+  # google_secret_manager_secret_version.s["db-password"] will be created
+  + resource "google_secret_manager_secret_version" "s" {
+      + create_time            = (known after apply)
+      + deletion_policy        = "DELETE"
+      + destroy_time           = (known after apply)
+      + enabled                = true
+      + id                     = (known after apply)
+      + is_secret_data_base64  = false
+      + name                   = (known after apply)
+      + secret                 = (known after apply)
+      + secret_data            = (sensitive value)
+      + secret_data_wo_version = 0
+      + version                = (known after apply)
+    }
+
+  # google_secret_manager_secret_version.s["jwt-secret"] will be created
+  + resource "google_secret_manager_secret_version" "s" {
+      + create_time            = (known after apply)
+      + deletion_policy        = "DELETE"
+      + destroy_time           = (known after apply)
+      + enabled                = true
+      + id                     = (known after apply)
+      + is_secret_data_base64  = false
+      + name                   = (known after apply)
+      + secret                 = (known after apply)
+      + secret_data            = (sensitive value)
+      + secret_data_wo_version = 0
+      + version                = (known after apply)
+    }
+
+  # google_service_account.deployer will be created
+  + resource "google_service_account" "deployer" {
+      + account_id   = "labtrack-deployer"
+      + disabled     = false
+      + display_name = "LabTrack GitHub Actions deployer"
+      + email        = "labtrack-deployer@labtrack-1026146.iam.gserviceaccount.com"
+      + id           = (known after apply)
+      + member       = "serviceAccount:labtrack-deployer@labtrack-1026146.iam.gserviceaccount.com"
+      + name         = (known after apply)
+      + project      = "labtrack-1026146"
+      + unique_id    = (known after apply)
+    }
+
+  # google_service_account.ops[0] will be created
+  + resource "google_service_account" "ops" {
+      + account_id   = "labtrack-ops"
+      + disabled     = false
+      + display_name = "LabTrack ops VM (nightly pg_dump)"
+      + email        = "labtrack-ops@labtrack-1026146.iam.gserviceaccount.com"
+      + id           = (known after apply)
+      + member       = "serviceAccount:labtrack-ops@labtrack-1026146.iam.gserviceaccount.com"
+      + name         = (known after apply)
+      + project      = "labtrack-1026146"
+      + unique_id    = (known after apply)
+    }
+
+  # google_service_account.run will be created
+  + resource "google_service_account" "run" {
+      + account_id   = "labtrack-run"
+      + disabled     = false
+      + display_name = "LabTrack Cloud Run runtime"
+      + email        = "labtrack-run@labtrack-1026146.iam.gserviceaccount.com"
+      + id           = (known after apply)
+      + member       = "serviceAccount:labtrack-run@labtrack-1026146.iam.gserviceaccount.com"
+      + name         = (known after apply)
+      + project      = "labtrack-1026146"
+      + unique_id    = (known after apply)
+    }
+
+  # google_service_account_iam_member.deployer_act_as_run will be created
+  + resource "google_service_account_iam_member" "deployer_act_as_run" {
+      + etag               = (known after apply)
+      + id                 = (known after apply)
+      + member             = "serviceAccount:labtrack-deployer@labtrack-1026146.iam.gserviceaccount.com"
+      + role               = "roles/iam.serviceAccountUser"
+      + service_account_id = (known after apply)
+    }
+
+  # google_service_account_iam_member.github_wif will be created
+  + resource "google_service_account_iam_member" "github_wif" {
+      + etag               = (known after apply)
+      + id                 = (known after apply)
+      + member             = (known after apply)
+      + role               = "roles/iam.workloadIdentityUser"
+      + service_account_id = (known after apply)
+    }
+
+  # google_service_account_iam_member.run_self_sign will be created
+  + resource "google_service_account_iam_member" "run_self_sign" {
+      + etag               = (known after apply)
+      + id                 = (known after apply)
+      + member             = "serviceAccount:labtrack-run@labtrack-1026146.iam.gserviceaccount.com"
+      + role               = "roles/iam.serviceAccountTokenCreator"
+      + service_account_id = (known after apply)
+    }
+
+  # google_sql_database.app will be created
+  + resource "google_sql_database" "app" {
+      + charset         = (known after apply)
+      + collation       = (known after apply)
+      + deletion_policy = "DELETE"
+      + id              = (known after apply)
+      + instance        = (known after apply)
+      + name            = "labtrack"
+      + project         = "labtrack-1026146"
+      + self_link       = (known after apply)
+    }
+
+  # google_sql_database_instance.db will be created
+  + resource "google_sql_database_instance" "db" {
+      + available_maintenance_versions = (known after apply)
+      + connection_name                = (known after apply)
+      + database_version               = "POSTGRES_16"
+      + deletion_protection            = false
+      + dns_name                       = (known after apply)
+      + dns_names                      = (known after apply)
+      + encryption_key_name            = (known after apply)
+      + first_ip_address               = (known after apply)
+      + id                             = (known after apply)
+      + instance_type                  = (known after apply)
+      + ip_address                     = (known after apply)
+      + maintenance_version            = (known after apply)
+      + master_instance_name           = (known after apply)
+      + name                           = (known after apply)
+      + node_count                     = (known after apply)
+      + private_ip_address             = (known after apply)
+      + project                        = "labtrack-1026146"
+      + psc_service_attachment_link    = (known after apply)
+      + public_ip_address              = (known after apply)
+      + region                         = "asia-southeast2"
+      + replica_names                  = (known after apply)
+      + self_link                      = (known after apply)
+      + server_ca_cert                 = (sensitive value)
+      + service_account_email_address  = (known after apply)
+
+      + replica_configuration (known after apply)
+
+      + replication_cluster (known after apply)
+
+      + settings {
+          + activation_policy           = "ALWAYS"
+          + availability_type           = "ZONAL"
+          + connector_enforcement       = (known after apply)
+          + disk_autoresize             = true
+          + disk_autoresize_limit       = 0
+          + disk_size                   = 10
+          + disk_type                   = "PD_SSD"
+          + edition                     = "ENTERPRISE"
+          + effective_availability_type = (known after apply)
+          + pricing_plan                = "PER_USE"
+          + tier                        = "db-f1-micro"
+          + user_labels                 = (known after apply)
+          + version                     = (known after apply)
+
+          + backup_configuration {
+              + enabled                        = true
+              + start_time                     = "18:00"
+              + transaction_log_retention_days = (known after apply)
+
+              + backup_retention_settings {
+                  + retained_backups = 7
+                  + retention_unit   = "COUNT"
+                }
+            }
+
+          + connection_pool_config (known after apply)
+
+          + data_cache_config (known after apply)
+
+          + insights_config {
+              + query_insights_enabled = true
+              + query_plans_per_minute = (known after apply)
+              + query_string_length    = 1024
+            }
+
+          + ip_configuration {
+              + ipv4_enabled   = true
+              + server_ca_mode = (known after apply)
+              + ssl_mode       = "ENCRYPTED_ONLY"
+            }
+
+          + location_preference (known after apply)
+
+          + maintenance_window {
+              + day  = 7
+              + hour = 19
+            }
+        }
+    }
+
+  # google_sql_user.app will be created
+  + resource "google_sql_user" "app" {
+      + host                    = (known after apply)
+      + id                      = (known after apply)
+      + instance                = (known after apply)
+      + name                    = "labtrack"
+      + password                = (sensitive value)
+      + project                 = "labtrack-1026146"
+      + sql_server_user_details = (known after apply)
+    }
+
+  # google_storage_bucket.backups[0] will be created
+  + resource "google_storage_bucket" "backups" {
+      + effective_labels            = {
+          + "goog-terraform-provisioned" = "true"
+        }
+      + force_destroy               = true
+      + id                          = (known after apply)
+      + location                    = "ASIA-SOUTHEAST2"
+      + name                        = "labtrack-1026146-labtrack-backups"
+      + project                     = (known after apply)
+      + project_number              = (known after apply)
+      + public_access_prevention    = "enforced"
+      + rpo                         = (known after apply)
+      + self_link                   = (known after apply)
+      + storage_class               = "STANDARD"
+      + terraform_labels            = {
+          + "goog-terraform-provisioned" = "true"
+        }
+      + time_created                = (known after apply)
+      + uniform_bucket_level_access = true
+      + updated                     = (known after apply)
+      + url                         = (known after apply)
+
+      + lifecycle_rule {
+          + action {
+              + type          = "Delete"
+                # (1 unchanged attribute hidden)
+            }
+          + condition {
+              + age                    = 30
+              + matches_prefix         = []
+              + matches_storage_class  = []
+              + matches_suffix         = []
+              + with_state             = (known after apply)
+                # (3 unchanged attributes hidden)
+            }
+        }
+
+      + soft_delete_policy (known after apply)
+
+      + versioning (known after apply)
+
+      + website (known after apply)
+    }
+
+  # google_storage_bucket.reports will be created
+  + resource "google_storage_bucket" "reports" {
+      + effective_labels            = {
+          + "goog-terraform-provisioned" = "true"
+        }
+      + force_destroy               = true
+      + id                          = (known after apply)
+      + location                    = "ASIA-SOUTHEAST2"
+      + name                        = "labtrack-1026146-labtrack-reports"
+      + project                     = (known after apply)
+      + project_number              = (known after apply)
+      + public_access_prevention    = "enforced"
+      + rpo                         = (known after apply)
+      + self_link                   = (known after apply)
+      + storage_class               = "STANDARD"
+      + terraform_labels            = {
+          + "goog-terraform-provisioned" = "true"
+        }
+      + time_created                = (known after apply)
+      + uniform_bucket_level_access = true
+      + updated                     = (known after apply)
+      + url                         = (known after apply)
+
+      + lifecycle_rule {
+          + action {
+              + type          = "Delete"
+                # (1 unchanged attribute hidden)
+            }
+          + condition {
+              + matches_prefix         = []
+              + matches_storage_class  = []
+              + matches_suffix         = []
+              + num_newer_versions     = 3
+              + with_state             = (known after apply)
+                # (3 unchanged attributes hidden)
+            }
+        }
+
+      + soft_delete_policy (known after apply)
+
+      + versioning {
+          + enabled = true
+        }
+
+      + website (known after apply)
+    }
+
+  # google_storage_bucket_iam_member.ops_backup_writer[0] will be created
+  + resource "google_storage_bucket_iam_member" "ops_backup_writer" {
+      + bucket = "labtrack-1026146-labtrack-backups"
+      + etag   = (known after apply)
+      + id     = (known after apply)
+      + member = "serviceAccount:labtrack-ops@labtrack-1026146.iam.gserviceaccount.com"
+      + role   = "roles/storage.objectCreator"
+    }
+
+  # google_storage_bucket_iam_member.run_objects will be created
+  + resource "google_storage_bucket_iam_member" "run_objects" {
+      + bucket = "labtrack-1026146-labtrack-reports"
+      + etag   = (known after apply)
+      + id     = (known after apply)
+      + member = "serviceAccount:labtrack-run@labtrack-1026146.iam.gserviceaccount.com"
+      + role   = "roles/storage.objectAdmin"
+    }
+
+  # random_id.suffix will be created
+  + resource "random_id" "suffix" {
+      + b64_std     = (known after apply)
+      + b64_url     = (known after apply)
+      + byte_length = 2
+      + dec         = (known after apply)
+      + hex         = (known after apply)
+      + id          = (known after apply)
+    }
+
+  # random_password.admin will be created
+  + resource "random_password" "admin" {
+      + bcrypt_hash = (sensitive value)
+      + id          = (known after apply)
+      + length      = 16
+      + lower       = true
+      + min_lower   = 0
+      + min_numeric = 0
+      + min_special = 0
+      + min_upper   = 0
+      + number      = true
+      + numeric     = true
+      + result      = (sensitive value)
+      + special     = false
+      + upper       = true
+    }
+
+  # random_password.db will be created
+  + resource "random_password" "db" {
+      + bcrypt_hash = (sensitive value)
+      + id          = (known after apply)
+      + length      = 24
+      + lower       = true
+      + min_lower   = 0
+      + min_numeric = 0
+      + min_special = 0
+      + min_upper   = 0
+      + number      = true
+      + numeric     = true
+      + result      = (sensitive value)
+      + special     = false
+      + upper       = true
+    }
+
+  # random_password.jwt will be created
+  + resource "random_password" "jwt" {
+      + bcrypt_hash = (sensitive value)
+      + id          = (known after apply)
+      + length      = 48
+      + lower       = true
+      + min_lower   = 0
+      + min_numeric = 0
+      + min_special = 0
+      + min_upper   = 0
+      + number      = true
+      + numeric     = true
+      + result      = (sensitive value)
+      + special     = false
+      + upper       = true
+    }
+
+Plan: 62 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + admin_login             = {
+      + email            = "admin@labtrack.dev"
+      + password_command = "gcloud secrets versions access latest --secret=labtrack-admin-password --project=labtrack-1026146"
+    }
+  + api_url                 = (known after apply)
+  + github_vars             = {
+      + GCP_DEPLOYER_SA  = "labtrack-deployer@labtrack-1026146.iam.gserviceaccount.com"
+      + GCP_PROJECT_ID   = "labtrack-1026146"
+      + GCP_REGION       = "asia-southeast2"
+      + GCP_WIF_PROVIDER = (known after apply)
+    }
+  + ops_vm                  = {
+      + backup_bucket = "labtrack-1026146-labtrack-backups"
+      + name          = "labtrack-ops"
+      + ssh_command   = "gcloud compute ssh labtrack-ops --zone=us-central1-a --tunnel-through-iap"
+      + zone          = "us-central1-a"
+    }
+  + reports_bucket          = "labtrack-1026146-labtrack-reports"
+  + runtime_service_account = "labtrack-run@labtrack-1026146.iam.gserviceaccount.com"
+  + sql_connection_name     = (known after apply)
+  + uptime_check_id         = (known after apply)
+
+─────────────────────────────────────────────────────────────────────────────
+
+Saved the plan to: tfplan
+
+To perform exactly these actions, run the following command to apply:
+    terraform apply "tfplan"
