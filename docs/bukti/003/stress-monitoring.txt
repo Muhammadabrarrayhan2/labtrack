@@ -1,0 +1,6 @@
+Stage metrics from Cloud Monitoring (max per stage), stress test start 2026-10-25T18:22:03Z
+100 VU: instances_max=3 sql_cpu_max=37.5% sql_backends_max=24
+150 VU: instances_max=3 sql_cpu_max=27.7% sql_backends_max=23
+200 VU: instances_max=3 sql_cpu_max=23.7% sql_backends_max=24
+250 VU: instances_max=3 sql_cpu_max=23.9% sql_backends_max=23
+300 VU: instances_max=3 sql_cpu_max=11.7% sql_backends_max=17

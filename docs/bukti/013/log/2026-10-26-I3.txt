@@ -1,0 +1,44 @@
+
+==> 1. Identify: pending upgrades
++ gcloud compute ssh labtrack-ops --project=labtrack-1026146 --zone=us-central1-a --tunnel-through-iap --command sudo apt-get update -q && apt list --upgradable 2>/dev/null
+Fetched 150 kB in 1s (125 kB/s)
+Listing...
+libbrotli1/oldstable-security 1.0.9-2+deb12u1 amd64 [upgradable from: 1.0.9-2+b6]
+tzdata/oldstable-security 2026e-0+deb12u1 all [upgradable from: 2026c-0+deb12u1]
+
+==> 2. Back up: boot disk snapshot
+
+==> Snapshotting disk labtrack-ops-boot to labtrack-ops-manual-prepatch-20261025-232825 (stored in us-central1)
++ gcloud compute disks snapshot labtrack-ops-boot --project=labtrack-1026146 --zone=us-central1-a --snapshot-names=labtrack-ops-manual-prepatch-20261025-232825 --storage-location=us-central1 --labels=app=labtrack,type=manual
+Creating snapshot(s) labtrack-ops-manual-prepatch-20261025-232825...
+....................................................................................................................................................................................................................................................................................................done.
+
+==> Snapshots of labtrack-ops-boot
++ gcloud compute snapshots list --project=labtrack-1026146 --filter=sourceDisk ~ /labtrack-ops-boot$ --sort-by=~creationTimestamp --limit=10 --format=table(name,creationTimestamp,diskSizeGb,storageBytes,status)
+NAME                                                     CREATION_TIMESTAMP             DISK_SIZE_GB  STORAGE_BYTES  STATUS
+labtrack-ops-manual-prepatch-20261025-232825             2026-10-25T16:26:13.106-07:00  10            50746624       READY
+labtrack-ops-boot-us-central1-a-20261025203634-c140zn9y  2026-10-25T13:36:34.899-07:00  10            1058372480     READY
+
+==> 3. Apply upgrades
++ gcloud compute ssh labtrack-ops --project=labtrack-1026146 --zone=us-central1-a --tunnel-through-iap --command sudo DEBIAN_FRONTEND=noninteractive apt-get -y -q -o Dpkg::Options::=--force-confold upgrade
+The following packages will be upgraded:
+  libbrotli1 tzdata
+2 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+Need to get 581 kB of archives.
+After this operation, 1024 B of additional disk space will be used.
+apt-listchanges: Reading changelogs...
+Preconfiguring packages ...
+Fetched 581 kB in 0s (2437 kB/s)
+
+Current default time zone: 'Etc/UTC'
+Local time is now:      Sun Oct 25 23:27:31 UTC 2026.
+Universal Time is now:  Sun Oct 25 23:27:31 UTC 2026.
+Run 'dpkg-reconfigure tzdata' if you wish to change it.
+
+
+==> 4. Post-maintenance test: services and reboot flag
++ gcloud compute ssh labtrack-ops --project=labtrack-1026146 --zone=us-central1-a --tunnel-through-iap --command echo "$(systemctl is-active cloud-sql-proxy google-cloud-ops-agent | paste -sd, -) $(test -f /var/run/reboot-required && echo REBOOT_REQUIRED || echo NO_REBOOT_REQUIRED)"
+active,active NO_REBOOT_REQUIRED
+
+==> 5. Record the change
+Change recorded in docs/bukti/013/change-log.md

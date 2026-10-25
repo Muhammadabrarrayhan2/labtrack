@@ -60,7 +60,6 @@ step "Creating temporary instance $TEMP (about 5 to 10 minutes)"
 run gcloud sql instances create "$TEMP" --project="$PROJECT_ID" --region="$REGION" \
   --database-version=POSTGRES_16 --edition=ENTERPRISE --tier=db-f1-micro \
   --storage-type=SSD --storage-size=10 --no-backup --availability-type=zonal \
-  --labels=purpose=restore-test
 
 step "Restoring backup $BACKUP_ID into $TEMP"
 run gcloud sql backups restore "$BACKUP_ID" --restore-instance="$TEMP" \

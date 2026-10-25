@@ -1,0 +1,19 @@
+Count,Message,Traceback,Nodes
+6,429 Client Error: Too Many Requests for url: https://labtrack-api-b26757zszq-et.a.run.app/courses/1/students,"  File ""C:\Users\ACER\Downloads\labtrack (1)\labtrack\.venv\Lib\site-packages\locust\user\users.py"", line 166, in run
+    self.on_start()
+  File ""C:\Users\ACER\Downloads\labtrack (1)\labtrack\scripts\loadtest\locustfile.py"", line 59, in on_start
+    r.raise_for_status()
+  File ""C:\Users\ACER\Downloads\labtrack (1)\labtrack\.venv\Lib\site-packages\locust\clients.py"", line 351, in raise_for_status
+    Response.raise_for_status(self)
+  File ""C:\Users\ACER\Downloads\labtrack (1)\labtrack\.venv\Lib\site-packages\requests\models.py"", line 1167, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+",local
+3,429 Client Error: Too Many Requests for url: https://labtrack-api-b26757zszq-et.a.run.app/auth/login,"  File ""C:\Users\ACER\Downloads\labtrack (1)\labtrack\.venv\Lib\site-packages\locust\user\users.py"", line 166, in run
+    self.on_start()
+  File ""C:\Users\ACER\Downloads\labtrack (1)\labtrack\scripts\loadtest\locustfile.py"", line 55, in on_start
+    r.raise_for_status()
+  File ""C:\Users\ACER\Downloads\labtrack (1)\labtrack\.venv\Lib\site-packages\locust\clients.py"", line 351, in raise_for_status
+    Response.raise_for_status(self)
+  File ""C:\Users\ACER\Downloads\labtrack (1)\labtrack\.venv\Lib\site-packages\requests\models.py"", line 1167, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+",local

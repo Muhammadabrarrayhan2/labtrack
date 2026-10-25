@@ -1,0 +1,12 @@
+
+==> Creating backup of labtrack-db-f6f7: Sebelum uji restore dan simulasi insiden
++ gcloud sql backups create --instance=labtrack-db-f6f7 --project=labtrack-1026146 --description=Sebelum uji restore dan simulasi insiden
+Backing up Cloud SQL instance...
+........done.
+[https://sqladmin.googleapis.com/sql/v1beta4/projects/labtrack-1026146/instances/labtrack-db-f6f7] backed up.
+
+==> Latest backups
++ gcloud sql backups list --instance=labtrack-db-f6f7 --project=labtrack-1026146 --limit=5 --format=table(id,windowStartTime,type,status,description)
+ID             WINDOW_START_TIME              TYPE       STATUS      DESCRIPTION
+1792970383825  2026-10-25T23:19:43.825+00:00  ON_DEMAND  SUCCESSFUL  Sebelum uji restore dan simulasi insiden
+1792951200000  2026-10-25T18:00:00.000+00:00  AUTOMATED  SUCCESSFUL

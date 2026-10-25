@@ -1,0 +1,7 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+GET,GET /courses/{id}/students,HTTPError('429 Client Error: Too Many Requests for url: GET /courses/{id}/students'),6,2026-10-25T18:22:29Z,2026-10-25T18:24:12Z
+POST,POST /auth/login,HTTPError('429 Client Error: Too Many Requests for url: POST /auth/login'),3,2026-10-25T18:24:07Z,2026-10-25T18:24:09Z
+GET,GET /students,HTTPError('429 Client Error: Too Many Requests for url: GET /students'),6,2026-10-25T18:22:32Z,2026-10-25T18:25:53Z
+PUT,PUT /sessions/{id}/attendance,HTTPError('429 Client Error: Too Many Requests for url: PUT /sessions/{id}/attendance'),3,2026-10-25T18:24:07Z,2026-10-25T18:25:44Z
+GET,GET /health,HTTPError('429 Client Error: Too Many Requests for url: GET /health'),1,2026-10-25T18:25:44Z,2026-10-25T18:25:44Z
+GET,GET /courses/{id}/attendance-summary,HTTPError('429 Client Error: Too Many Requests for url: GET /courses/{id}/attendance-summary'),2,2026-10-25T18:22:32Z,2026-10-25T18:24:07Z

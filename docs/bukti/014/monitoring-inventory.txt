@@ -1,0 +1,17 @@
+LabTrack monitoring inventory, read from the Cloud Monitoring API
+
+SERVICE labtrack-api - LabTrack API
+  SLO availability-30d | goal 0.995 | period 2592000s | Availability 99.5% (non-5xx requests, 30 day rolling)
+  SLO latency-800ms-30d | goal 0.95 | period 2592000s | Latency 95% of requests < 800 ms (30 day rolling)
+
+ALERT enabled | CRITICAL | LabTrack SLO: availability fast burn (10x over 1h) | channels: 1
+ALERT enabled | WARNING | LabTrack Cloud SQL: disk utilization > 80% | channels: 1
+ALERT enabled | - | LabTrack API is down | channels: 1
+ALERT enabled | WARNING | LabTrack Cloud SQL: connections near limit | channels: 1
+ALERT enabled | ERROR | LabTrack API: 5xx ratio > 5% for 5 minutes | channels: 1
+ALERT enabled | WARNING | LabTrack Cloud SQL: CPU > 80% for 10 minutes | channels: 1
+
+UPTIME LabTrack API /health | path /health | period 300s | host labtrack-api-b26757zszq-et.a.run.app
+
+CHANNEL email | LabTrack alerts | verification: -
+DASHBOARD LabTrack Overview | widgets: 8

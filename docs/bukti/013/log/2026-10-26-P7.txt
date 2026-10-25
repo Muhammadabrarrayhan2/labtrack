@@ -1,0 +1,48 @@
+NOTE: min 1 keeps instances warm and is billed while idle
+
+==> Scaling labtrack-api to min=1 max=3
++ gcloud run services update labtrack-api --project=labtrack-1026146 --region=asia-southeast2 --min-instances=1 --max-instances=3 --quiet
+Deploying...
+Creating Revision...........................................................................................................................done
+Routing traffic.....done
+Done.
+Service [labtrack-api] revision [labtrack-api-00003-q5n] has been deployed and is serving 100 percent of traffic.
+Service URL: https://labtrack-api-746146134471.asia-southeast2.run.app
+
+==> Result
++ gcloud run services describe labtrack-api --project=labtrack-1026146 --region=asia-southeast2 --format=yaml(spec.template.metadata.annotations)
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '3'
+        autoscaling.knative.dev/minScale: '1'
+        run.googleapis.com/client-name: gcloud
+        run.googleapis.com/client-version: 590.0.1
+        run.googleapis.com/cloudsql-instances: labtrack-1026146:asia-southeast2:labtrack-db-f6f7
+        run.googleapis.com/cpu-throttling: 'true'
+        run.googleapis.com/sessionAffinity: 'false'
+        run.googleapis.com/startup-cpu-boost: 'true'
+
+==> Scaling labtrack-api to min=0 max=3
++ gcloud run services update labtrack-api --project=labtrack-1026146 --region=asia-southeast2 --min-instances=0 --max-instances=3 --quiet
+Deploying...
+Creating Revision........................................................................................................................done
+Routing traffic.....done
+Done.
+Service [labtrack-api] revision [labtrack-api-00004-nps] has been deployed and is serving 100 percent of traffic.
+Service URL: https://labtrack-api-746146134471.asia-southeast2.run.app
+
+==> Result
++ gcloud run services describe labtrack-api --project=labtrack-1026146 --region=asia-southeast2 --format=yaml(spec.template.metadata.annotations)
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '3'
+        run.googleapis.com/client-name: gcloud
+        run.googleapis.com/client-version: 590.0.1
+        run.googleapis.com/cloudsql-instances: labtrack-1026146:asia-southeast2:labtrack-db-f6f7
+        run.googleapis.com/cpu-throttling: 'true'
+        run.googleapis.com/sessionAffinity: 'false'
+        run.googleapis.com/startup-cpu-boost: 'true'

@@ -1,0 +1,10 @@
++ Cloud SQL Studio / psql setara: UPDATE users SET is_active = false WHERE email = 'asisten.demo@labtrack.dev'
+  baris diubah: 1
+  status sekarang: [('admin@labtrack.dev', 'admin', True), ('asisten.demo@labtrack.dev', 'assistant', False)]
++ POST /auth/login asisten.demo -> 401 {'detail': 'Incorrect email or password', 'request_id': 'd32a0fed5150fc6612160144866ea7d8'}
+
++ U4 reset password: UPDATE users SET hashed_password = '<hash bcrypt dari app.security.hash_password>' WHERE email = 'asisten.demo@labtrack.dev'
++ login dengan password BENAR saat akun nonaktif -> 401 Incorrect email or password
++ UPDATE users SET is_active = true (aktifkan kembali)
++ login dengan password yang sama setelah diaktifkan -> 200
++ akun demo dinonaktifkan lagi agar tidak dipakai: ('asisten.demo@labtrack.dev', False)

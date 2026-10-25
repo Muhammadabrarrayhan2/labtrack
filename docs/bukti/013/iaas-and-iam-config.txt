@@ -1,0 +1,47 @@
++ IAM roles per service account (project level)
+MEMBERS                                                     ROLE
+labtrack-ops@labtrack-1026146.iam.gserviceaccount.com       roles/cloudsql.client
+labtrack-run@labtrack-1026146.iam.gserviceaccount.com       roles/cloudsql.client
+labtrack-ops@labtrack-1026146.iam.gserviceaccount.com       roles/logging.logWriter
+labtrack-run@labtrack-1026146.iam.gserviceaccount.com       roles/logging.logWriter
+labtrack-ops@labtrack-1026146.iam.gserviceaccount.com       roles/monitoring.metricWriter
+labtrack-run@labtrack-1026146.iam.gserviceaccount.com       roles/monitoring.metricWriter
+labtrack-deployer@labtrack-1026146.iam.gserviceaccount.com  roles/run.developer
+
++ gcloud compute instances describe labtrack-ops
+machineType: e2-micro
+name: labtrack-ops
+networkInterfaces:
+- networkIP: 10.10.0.3
+serviceAccounts:
+- email: labtrack-ops@labtrack-1026146.iam.gserviceaccount.com
+shieldedInstanceConfig:
+  enableIntegrityMonitoring: true
+  enableSecureBoot: true
+  enableVtpm: true
+status: RUNNING
+
++ firewall rules
+NAME                        NETWORK           SOURCE_RANGES    ALLOW
+default-allow-icmp          default           0.0.0.0/0        icmp
+default-allow-internal      default           10.128.0.0/9     tcp:0-65535,udp:0-65535,icmp
+default-allow-rdp           default           0.0.0.0/0        tcp:3389
+default-allow-ssh           default           0.0.0.0/0        tcp:22
+labtrack-ops-allow-iap-ssh  labtrack-ops-vpc  35.235.240.0/20  tcp:22
+
++ snapshot schedule
+name: labtrack-ops-daily-snapshot
+snapshotSchedulePolicy:
+  retentionPolicy:
+    maxRetentionDays: 7
+    onSourceDiskDelete: KEEP_AUTO_SNAPSHOTS
+  schedule:
+    dailySchedule:
+      daysInCycle: 1
+      duration: PT14400S
+      startTime: 20:00
+  snapshotProperties:
+    labels:
+      app: labtrack
+    storageLocations:
+    - us-central1

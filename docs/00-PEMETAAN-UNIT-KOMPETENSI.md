@@ -8,9 +8,9 @@
 
 **Proyek bukti:** LabTrack, REST API manajemen praktikum laboratorium di Google Cloud Platform
 
-**Repositori:** > [ISI: URL repositori GitHub]
+**Repositori:** https://github.com/Muhammadabrarrayhan2/labtrack
 
-**URL aplikasi:** > [ISI SETELAH DEPLOY: URL `*.run.app` dari `terraform output api_url`]
+**URL aplikasi:** https://labtrack-api-b26757zszq-et.a.run.app (Swagger UI di `/docs`), proyek Google Cloud `labtrack-1026146`
 
 ## Cara membaca dokumen ini
 

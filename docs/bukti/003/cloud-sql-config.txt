@@ -1,0 +1,29 @@
++ gcloud sql instances describe labtrack-db-f6f7
+databaseVersion: POSTGRES_16
+name: labtrack-db-f6f7
+region: asia-southeast2
+settings:
+  availabilityType: ZONAL
+  backupConfiguration:
+    backupRetentionSettings:
+      retainedBackups: 7
+      retentionUnit: COUNT
+    backupTier: STANDARD
+    enabled: true
+    kind: sql#backupConfiguration
+    pointInTimeRecoveryEnabled: false
+    replicationLogArchivingEnabled: false
+    startTime: 18:00
+    transactionLogRetentionDays: 7
+    transactionalLogStorageState: TRANSACTIONAL_LOG_STORAGE_STATE_UNSPECIFIED
+  dataDiskSizeGb: '10'
+  dataDiskType: PD_SSD
+  edition: ENTERPRISE
+  ipConfiguration:
+    sslMode: ENCRYPTED_ONLY
+  maintenanceWindow:
+    day: 7
+    hour: 19
+    kind: sql#maintenanceWindow
+  tier: db-f1-micro
+state: RUNNABLE

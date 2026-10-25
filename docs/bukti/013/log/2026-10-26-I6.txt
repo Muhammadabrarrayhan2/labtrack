@@ -1,16 +1,12 @@
-==> Running on labtrack-ops via IAP: sudo systemctl start labtrack-backup.service; sudo journalctl -u labtrack-backup --no-pager -n 4 -o cat; systemctl list-timers labtrack-backup.timer --no-pager
-+ gcloud compute ssh labtrack-ops --project=labtrack-1026146 --zone=us-central1-a --tunnel-through-iap --command=sudo systemctl start labtrack-backup.service; sudo journalctl -u labtrack-backup --no-pager -n 4 -o cat; systemctl list-timers labtrack-backup.timer --no-pager
-Job for labtrack-backup.service failed because the control process exited with error code.
-See "systemctl status labtrack-backup.service" and "journalctl -xeu labtrack-backup.service" for details.
-labtrack-backup.service: Main process exited, code=exited, status=1/FAILURE
-labtrack-backup.service: Failed with result 'exit-code'.
-Failed to start labtrack-backup.service - LabTrack nightly pg_dump to Cloud Storage.
-labtrack-backup.service: Consumed 2.821s CPU time.
-NEXT                        LEFT          LAST PASSED UNIT                  ACTIVATES
-Sun 2026-10-25 19:31:31 UTC 1h 15min left -    -      labtrack-backup.timer labtrack-backup.service
+==> Running on labtrack-ops via IAP: sudo systemctl start labtrack-backup.service && sudo journalctl -u labtrack-backup --no-pager -n 3 -o cat; systemctl list-timers labtrack-backup.timer --no-pager
++ gcloud compute ssh labtrack-ops --project=labtrack-1026146 --zone=us-central1-a --tunnel-through-iap --command=sudo systemctl start labtrack-backup.service && sudo journalctl -u labtrack-backup --no-pager -n 3 -o cat; systemctl list-timers labtrack-backup.timer --no-pager
+labtrack-backup.service: Deactivated successfully.
+Finished labtrack-backup.service - LabTrack nightly pg_dump to Cloud Storage.
+labtrack-backup.service: Consumed 2.099s CPU time.
+NEXT                        LEFT         LAST                        PASSED    UNIT                  ACTIVATES
+Sun 2026-10-25 19:31:11 UTC 1h 7min left Sun 2026-10-25 18:11:03 UTC 12min ago labtrack-backup.timer labtrack-backup.service
 1 timers listed.
 Pass --all to see loaded but inactive timers, too.
 + gcloud storage ls -l gs://labtrack-1026146-labtrack-backups/backups/
-C:\Users\ACER\AppData\Local\google-cloud-sdk\lib\third_party\google\api_core\_python_version_support.py:266: FutureWarning: You are using a Python version (3.11.0) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2027-10-24). Please upgrade to the latest Python version, or at least Python 3.12, to continue receiving updates for google.api_core past that date.
-  warnings.warn(message, FutureWarning)
-ERROR: (gcloud.storage.ls) One or more URLs matched no objects.
+     27521  2026-10-25T18:23:30Z  gs://labtrack-1026146-labtrack-backups/backups/labtrack-20261025T182300Z.dump
+TOTAL: 1 objects, 27521 bytes (26.88kiB)

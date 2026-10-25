@@ -1,0 +1,32 @@
++ gcloud run services describe labtrack-api
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '3'
+        run.googleapis.com/client-name: gcloud
+        run.googleapis.com/client-version: 590.0.1
+        run.googleapis.com/cloudsql-instances: labtrack-1026146:asia-southeast2:labtrack-db-f6f7
+        run.googleapis.com/cpu-throttling: 'true'
+        run.googleapis.com/sessionAffinity: 'false'
+        run.googleapis.com/startup-cpu-boost: 'true'
+    spec:
+      containerConcurrency: 40
+      containers:
+      - image: asia-southeast2-docker.pkg.dev/labtrack-1026146/labtrack/api:v1.0.1
+        resources:
+          limits:
+            cpu: '1'
+            memory: 512Mi
+      serviceAccountName: labtrack-run@labtrack-1026146.iam.gserviceaccount.com
+      timeoutSeconds: 30
+status:
+  latestReadyRevisionName: labtrack-api-00004-nps
+  url: https://labtrack-api-b26757zszq-et.a.run.app
+
++ gcloud run revisions list
+NAME                    STATUS  CREATION_TIMESTAMP           IMAGE
+labtrack-api-00004-nps  True    2026-10-25T23:22:22.885568Z  api@sha256:85be4fce75d98c9d516399d288c0a6369f301acd3d82e20c463e30f007f2bc57
+labtrack-api-00003-q5n  True    2026-10-25T23:22:03.298959Z  api@sha256:85be4fce75d98c9d516399d288c0a6369f301acd3d82e20c463e30f007f2bc57
+labtrack-api-00002-59d  True    2026-10-25T18:13:22.811384Z  api@sha256:85be4fce75d98c9d516399d288c0a6369f301acd3d82e20c463e30f007f2bc57
+labtrack-api-00001-fbc  True    2026-10-25T18:06:36.577143Z  api@sha256:62aab5916271765bc531075792d1ef3c28816d91077d30fac29e79db1c2f5789

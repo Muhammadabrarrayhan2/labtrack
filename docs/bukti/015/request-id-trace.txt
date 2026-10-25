@@ -1,0 +1,9 @@
+1. Respons yang diterima pengguna
+   HTTP 404 | header X-Request-ID: e0b14b99d4db1c58f6492eba4ee07296
+   body: {"detail":"Student 99999 not found","request_id":"e0b14b99d4db1c58f6492eba4ee07296"}
+
+2. Pencarian di Cloud Logging dengan request_id tersebut (setara Logs Explorer)
+   query: resource.type="cloud_run_revision" AND resource.labels.service_name="labtrack-api" AND jsonPayload.request_id="e0b14b99d4db1c58f6492eba4ee07296"
+    2026-10-25T23:22:54.942877Z INFO {"message": "GET /students/99999 404", "request_id": "e0b14b99d4db1c58f6492eba4ee07296", "method": "GET", "path": "/students/99999", "status": 404, "latency_ms": 19}
+
+Hasil: request_id cocok dengan log

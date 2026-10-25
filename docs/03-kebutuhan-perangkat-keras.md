@@ -211,24 +211,28 @@ locust -f scripts/loadtest/locustfile.py --host "$API" \
 
 ### 5.2 Hasil
 
-| Endpoint | Jumlah permintaan | Gagal (%) | p50 (ms) | p95 (ms) | RPS |
+Uji dijalankan pada 26 Oktober 2026 pukul 01.16 sampai 01.21 WIB terhadap `https://labtrack-api-b26757zszq-et.a.run.app` (proyek `labtrack-1026146`, revisi `labtrack-api-00002-59d`, versi 1.0.1), 50 pengguna, laju 5 per detik, 5 menit. Sumber: `docs/bukti/003/locust_stats.csv` dan `docs/bukti/003/locust-terminal.txt`.
+
+| Endpoint | Jumlah permintaan | Gagal | p50 (ms) | p95 (ms) | RPS |
 |---|---|---|---|---|---|
-| `GET /students` | > [ISI SETELAH DEPLOY: dari docs/bukti/003/locust_stats.csv] | | | | |
-| `GET /courses/{id}/attendance-summary` | > [ISI SETELAH DEPLOY] | | | | |
-| `PUT /sessions/{id}/attendance` | > [ISI SETELAH DEPLOY] | | | | |
-| `GET /health` | > [ISI SETELAH DEPLOY] | | | | |
-| `POST /auth/login` | > [ISI SETELAH DEPLOY] | | | | |
-| **Aggregated** | > [ISI SETELAH DEPLOY] | | | | |
+| `GET /students` | 2.704 | 0 | 34 | 58 | 9,04 |
+| `GET /courses/{id}/attendance-summary` | 2.135 | 0 | 39 | 61 | 7,14 |
+| `PUT /sessions/{id}/attendance` | 1.382 | 0 | 47 | 75 | 4,62 |
+| `GET /health` | 728 | 0 | 29 | 58 | 2,43 |
+| `GET /courses/{id}/students` (sekali per pengguna, saat mulai) | 50 | 0 | 2.300 | 8.000 | 0,17 |
+| `POST /auth/login` (sekali per pengguna, saat mulai) | 50 | 0 | 5.900 | 7.800 | 0,17 |
+| **Agregat** | **7.049** | **0 (0%)** | **38** | **69** | **23,58** |
 
-> [BUKTI: screenshot B-003-01, ringkasan terminal Locust di akhir uji (tabel statistik dan persentil)]
+> [BUKTI: screenshot B-003-01, ringkasan terminal Locust; keluaran teksnya tersimpan di docs/bukti/003/locust-terminal.txt]
 
-> [BUKTI: screenshot B-003-02, grafik "Container instances" pada dasbor LabTrack Overview selama uji, memperlihatkan kenaikan dari 0 ke N lalu turun kembali]
-
-> [BUKTI: screenshot B-003-03, grafik "Request latency p95" dan "Cloud SQL CPU utilization" selama uji]
+> [BUKTI: screenshot B-003-02 dan B-003-03, grafik "Container instances", "Request latency p95", dan "Cloud SQL CPU utilization" pada dasbor LabTrack Overview, rentang 01.15 sampai 01.25 WIB tanggal 26 Oktober 2026]
 
 ### 5.3 Analisis
 
-> [ISI SETELAH DEPLOY: bandingkan p95 dengan target 800 ms di SLO, jumlah instans maksimum yang tercapai, CPU Cloud SQL tertinggi, dan apakah ada galat 5xx atau 429. Nyatakan apakah ukuran saat ini memadai untuk estimasi 7 RPS di bagian 2.3 dan rekomendasi perubahan bila ada]
+1. **Target terpenuhi untuk operasi rutin.** Keempat endpoint yang dipakai berulang selama sesi praktikum memiliki p95 58 sampai 75 ms, jauh di bawah target 800 ms. Agregat p95 69 ms dengan 0 kegagalan dari 7.049 permintaan.
+2. **Kapasitas memadai.** Laju 23,58 RPS sekitar 3,4 kali beban lonjakan yang diestimasi (7 RPS) dan dilayani tanpa galat 5xx maupun 429.
+3. **Lonjakan login di awal adalah titik lemah.** Login dan permintaan pertama setiap pengguna mencapai p95 7,8 sampai 8 detik. Penyebabnya, 50 verifikasi bcrypt (sekitar 0,3 detik CPU masing-masing) datang dalam 10 detik pertama, sementara Cloud Run baru menambah instans dari 1 ke 3 (*cold start*). Pada beban nyata, 20 asisten tidak login pada detik yang sama, tetapi risiko ini tetap ditangani dengan dua rekomendasi: `scripts/ops/scale.sh 1 3` selama jam praktikum agar satu instans selalu siap, dan menaikkan memori atau CPU bila login serentak menjadi pola nyata.
+4. **Perbandingan dengan lokal.** Endpoint rutin di Google Cloud sekitar 3 sampai 4 kali lebih lambat dari lokal (p95 58 ms dibanding 15 ms untuk `GET /students`) karena latensi jaringan dari laptop ke region Jakarta dan Cloud SQL vCPU bersama, tetapi tetap di bawah 100 ms.
 
 ### 5.4 Hasil pembanding di lingkungan lokal (sudah dijalankan)
 
@@ -271,15 +275,25 @@ LOAD_SHAPE=stress LABTRACK_PASSWORD=... locust -f scripts/loadtest/locustfile.py
 
 Peringatan: uji ini sengaja melampaui kapasitas. Jalankan di luar jam praktikum. Beban 300 pengguna menghasilkan sekitar 150 RPS, sehingga Cloud Run akan mencapai batas 3 instans dan dapat mengembalikan galat 429 atau 503. Kondisi ini memakai anggaran galat SLO, dan hal tersebut memang bagian dari tujuan uji.
 
-| Tahap (VU) | p95 (ms) | RPS | Galat (%) | Instans Cloud Run | CPU Cloud SQL |
-|---|---|---|---|---|---|
-| 100 | > [ISI SETELAH DEPLOY: dari docs/bukti/003/stress_stats_history.csv] | | | | |
-| 150 | > [ISI SETELAH DEPLOY] | | | | |
-| 200 | > [ISI SETELAH DEPLOY] | | | | |
-| 250 | > [ISI SETELAH DEPLOY] | | | | |
-| 300 | > [ISI SETELAH DEPLOY] | | | | |
-| 20 (pemulihan) | > [ISI SETELAH DEPLOY] | | | | |
+Uji dijalankan pada 26 Oktober 2026 mulai pukul 01.22 WIB. Nilai p50, p95, dan RPS adalah rata-rata per tahap dari `docs/bukti/003/stress_stats_history.csv` (30 detik pertama tiap tahap diabaikan sebagai masa transisi). Jumlah instans, CPU, dan koneksi Cloud SQL adalah nilai maksimum per tahap dari Cloud Monitoring (`docs/bukti/003/stress-monitoring.txt`).
 
-> [BUKTI: screenshot B-003-07, grafik Locust (laporan HTML) p95 dan jumlah pengguna selama uji stress, ditambah grafik "Container instances" di dasbor]
+| Tahap (VU) | p50 (ms) | p95 (ms) | RPS | Instans Cloud Run (maks) | CPU Cloud SQL (maks) | Koneksi Cloud SQL (maks) |
+|---|---|---|---|---|---|---|
+| 100 | 38 | 1.352 | 46,5 | 3 | 37,5% | 24 |
+| 150 | 214 | 466 | 68,3 | 3 | 27,7% | 23 |
+| 200 | 2.680 | 5.584 | 41,6 | 3 | 23,7% | 24 |
+| 250 | 4.389 | 8.034 | 39,3 | 3 | 23,9% | 23 |
+| 300 | 6.397 | 11.116 | 36,2 | 3 | 11,7% | 17 |
 
-> [ISI SETELAH DEPLOY: titik jenuh (jumlah VU saat p95 melewati 800 ms atau galat melewati 1%), komponen yang menjadi hambatan (batas instans, CPU Cloud SQL, atau koneksi), dan waktu pemulihan setelah tahap 6 dimulai]
+Total 25.440 permintaan dengan 21 galat (0,08%), seluruhnya HTTP 429 *Too Many Requests* dari Cloud Run, bukan galat aplikasi (`docs/bukti/003/stress_failures.csv`).
+
+Riwayat Locust berhenti di detik ke-579, sehingga tahap 6 (20 pengguna) tidak terekam pada run ini. Pemulihan diukur dengan run terpisah 20 pengguna selama 2 menit, yang karena jeda sesi baru dijalankan pukul 06.18 WIB, sekitar 5 jam kemudian, dari kondisi idle (`docs/bukti/003/recovery_stats.csv`): 1.026 permintaan, 0 gagal, p95 endpoint rutin 78 sampai 95 ms. Login pertama pada run itu mencapai p95 19 detik karena 20 pengguna login serentak ke instans yang baru menyala.
+
+> [BUKTI: screenshot B-003-07, grafik laporan HTML docs/bukti/003/stress-report.html dan grafik "Container instances" di dasbor pada rentang 01.20 sampai 01.35 WIB]
+
+Analisis:
+
+1. **Titik jenuh di antara 150 dan 200 pengguna.** Pada 150 pengguna p95 masih 466 ms (di bawah target 800 ms) dengan laju tertinggi 68 RPS. Pada 200 pengguna p95 melonjak ke 5,6 detik dan laju justru turun, tanda antrean di instans.
+2. **Hambatan utama adalah batas 3 instans Cloud Run, bukan basis data.** Jumlah instans sudah 3 sejak tahap pertama, sedangkan CPU Cloud SQL tidak pernah melewati 37,5%. Cloud Run menolak kelebihan permintaan dengan 429, sesuai perilaku yang diharapkan saat `max_instance_count` tercapai.
+3. **Anggaran koneksi terbukti ketat.** Koneksi Cloud SQL mencapai 24 dari batas 25, sesuai perhitungan bagian 3.3 (21 dari aplikasi ditambah koneksi internal dan VM ops). Alert `connections near limit` (ambang 20) dirancang untuk kondisi ini.
+4. **Rekomendasi bila beban tumbuh melampaui 150 pengguna serentak:** naikkan `max_instance_count` bersamaan dengan tier Cloud SQL (misalnya `db-g1-small`, batas 50 koneksi), atau turunkan `pool_size`, sesuai rumus anggaran koneksi. Untuk beban saat ini (estimasi 7 RPS, sekitar 20 asisten), kapasitas 68 RPS pada p95 di bawah target sudah memberi ruang hampir 10 kali.

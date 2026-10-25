@@ -1,0 +1,32 @@
+
+==> Current traffic split
++ gcloud run services describe labtrack-api --project=labtrack-1026146 --region=asia-southeast2 --format=table(status.traffic.revisionName,status.traffic.percent)
+REVISION_NAME               PERCENT
+['labtrack-api-00002-59d']  [100]
+Serving revision: labtrack-api-00002-59d
+
+==> Shifting 100% of traffic to labtrack-api-00001-fbc
++ gcloud run services update-traffic labtrack-api --project=labtrack-1026146 --region=asia-southeast2 --to-revisions=labtrack-api-00001-fbc=100
+Updating traffic...
+Routing traffic..........................................done
+Done.
+URL: https://labtrack-api-b26757zszq-et.a.run.app
+Traffic:
+  100% labtrack-api-00001-fbc
+
+==> Smoke test
++ curl -fsS https://labtrack-api-b26757zszq-et.a.run.app/health
+{"status":"ok","database":"ok","version":"1.0.0","environment":"production"}
+Rolled back to labtrack-api-00001-fbc. Run 'scripts/ops/rollback.sh --to-latest' after the fix is deployed.
+
+==> Sending 100% of traffic to the latest revision of labtrack-api
++ gcloud run services update-traffic labtrack-api --project=labtrack-1026146 --region=asia-southeast2 --to-latest
+Updating traffic...
+Routing traffic............................................done
+Done.
+URL: https://labtrack-api-b26757zszq-et.a.run.app
+Traffic:
+  100% LATEST (currently labtrack-api-00002-59d)
+
++ curl $API/health
+{"status":"ok","database":"ok","version":"1.0.1","environment":"production"}
