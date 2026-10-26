@@ -8,7 +8,7 @@ from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
@@ -140,8 +140,11 @@ async def access_log(request: Request, call_next):
 
 
 @app.get("/", tags=["ops"])
-def root() -> dict:
-    return {"service": "LabTrack API", "version": __version__, "docs": "/docs"}
+def root(request: Request):
+    # Browsers land on the web app; API clients keep getting the service description
+    if "text/html" in request.headers.get("accept", ""):
+        return RedirectResponse("/app/", status_code=307)
+    return {"service": "LabTrack API", "version": __version__, "docs": "/docs", "app": "/app/"}
 
 
 @app.get("/health", tags=["ops"])
@@ -163,6 +166,9 @@ app.include_router(students.router)
 app.include_router(courses.router)
 app.include_router(sessions.router)
 app.include_router(reports.router)
+
+# Web front end for lab staff: static files that call the same API with the user's JWT
+app.mount("/app", StaticFiles(directory=Path(__file__).parent / "static", html=True), name="web")
 
 if not settings.gcs_bucket:
     # Development only: serve uploaded files from the local folder
