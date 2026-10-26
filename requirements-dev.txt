@@ -7,3 +7,7 @@ locust>=2.29
 
 # Monthly SLA report (scripts/sla_report.py)
 google-cloud-monitoring>=2.22
+
+# Word deliverables (scripts/docs/build_word.py)
+python-docx>=1.2
+pillow>=10.0

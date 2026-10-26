@@ -48,13 +48,21 @@ flowchart LR
 
 | | |
 |---|---|
+| Web app (lab staff) | https://labtrack-api-b26757zszq-et.a.run.app/app/ |
 | API (Swagger UI) | https://labtrack-api-b26757zszq-et.a.run.app/docs |
 | Health | https://labtrack-api-b26757zszq-et.a.run.app/health |
 | Google Cloud project | `labtrack-1026146` (Cloud Run and Cloud SQL in `asia-southeast2`, ops VM in `us-central1`) |
 | CI/CD | [GitHub Actions](https://github.com/Muhammadabrarrayhan2/labtrack/actions) |
 | Evidence | [docs/00-PEMETAAN-UNIT-KOMPETENSI.md](docs/00-PEMETAAN-UNIT-KOMPETENSI.md), screenshots in [docs/bukti/screenshots](docs/bukti/screenshots) |
+| Word documents | [docs/word](docs/word): Laporan Proyek, Artikel Jurnal, Manual Pengguna, Dokumentasi Teknis (.docx and .pdf) |
 
 Measured on Google Cloud on 26 October 2026: 50 users for 5 minutes gave 7,049 requests with no failures and a p95 of 69 ms; the stepped stress test saturated between 150 and 200 users at the 3-instance cap; a Cloud SQL restore test passed in about 27 minutes; a simulated database outage recovered in about 20 minutes.
+
+## Web app
+
+Lab staff use the web front end at `/app/`; browsers that open `/` are redirected there, while API clients still get JSON. It is plain HTML, CSS and JavaScript in `app/static/`, served by the same Cloud Run service, so it adds no infrastructure or cost. Views: attendance summary with an at-risk threshold, bulk attendance entry, student search and enrollment, report upload, download and grading, and an admin view for courses, sessions and staff accounts. Every error message shows the `request_id` so a report can be matched to its log line.
+
+`scripts/evidence/screenshot_webapp.py` seeds example data (course `CC-CONTOH`) through the API and drives the UI in headless Edge; its screenshots are `docs/bukti/screenshots/web-*.png`.
 
 ## API overview
 
@@ -224,6 +232,15 @@ Repositori ini disusun sebagai bukti kompetensi (APL02) untuk sertifikasi BNSP C
 | Pemetaan ke modul pelatihan (40 slide, lab 1 sampai 4, bukti minimum) | [07-kesesuaian-modul-pelatihan.md](docs/07-kesesuaian-modul-pelatihan.md) |
 
 Langkah deploy dan pengambilan bukti: [docs/PANDUAN-DEPLOYMENT.md](docs/PANDUAN-DEPLOYMENT.md). Bukti nyata dari lingkungan lokal (uji integrasi 9/9 lulus, uji beban 2.953 permintaan tanpa galat, *backup-restore-verify* 7/7 tabel identik, simulasi insiden pulih sekitar 39 detik) ada di [docs/bukti/lokal/](docs/bukti/lokal/).
+
+## Documents
+
+The Word deliverables in `docs/word/` are generated from the Markdown sources in `docs/word/src/`:
+
+```bash
+python scripts/docs/build_word.py            # needs python-docx and Pillow
+python scripts/docs/word_finalize.py docs/word/*.docx   # Windows + Word: refresh the table of contents, export PDF
+```
 
 ## Known limitations
 

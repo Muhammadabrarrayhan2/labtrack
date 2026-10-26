@@ -40,6 +40,15 @@ Semua gambar di folder ini dibuat pada 26 Oktober 2026 dari sistem yang berjalan
 | B-015-02 | `B-015-02-request-id-trace.png` | Terminal | `request_id` dari respons 404 ditemukan di Cloud Logging |
 | B-015-03 | `B-015-03-incident-timeline.png` | Terminal | Linimasa simulasi insiden Cloud SQL |
 | B-015-07 | `B-015-07-issue-templates.png` | Browser | Pilihan templat issue di GitHub |
+| W-01 | `web-01-login.png` | Browser | Halaman masuk antarmuka web di Cloud Run |
+| W-02 | `web-02-login-gagal.png` | Browser | Login gagal menampilkan kode `request_id` |
+| W-03 | `web-03-rekap.png` | Browser | Rekap kehadiran mata kuliah contoh CC-CONTOH |
+| W-04 | `web-04-input-kehadiran.png` | Browser | Input kehadiran Modul 3 tersimpan |
+| W-05 | `web-05-mahasiswa.png` | Browser | Pencarian dan pendaftaran mahasiswa |
+| W-06 | `web-06-laporan.png` | Browser | Laporan praktikum: unggah, unduh, nilai |
+| W-07 | `web-07-kelola.png` | Browser | Menu Kelola koordinator |
+| W-08 | `web-08-rekap-setelah-input.png` | Browser | Rekap setelah input Modul 3, tiga mahasiswa berisiko |
+| W-09 | `web-09-login-ponsel.png` | Browser | Halaman masuk di layar ponsel |
 
 ## Screenshot yang hanya bisa diambil pemilik akun
 
