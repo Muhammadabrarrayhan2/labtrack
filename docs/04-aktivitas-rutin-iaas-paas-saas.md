@@ -132,13 +132,13 @@ Isi satu baris setiap kali aktivitas dijalankan. Tempel keluaran terminal ke ber
 | 2026-10-26 06.20 | P6 | Rollback dan kembali ke latest | `scripts/ops/rollback.sh`, `scripts/ops/rollback.sh --to-latest` | Trafik pindah ke `00001-fbc` (versi 1.0.0) lalu kembali ke revisi terbaru (1.0.1); *smoke test* lulus di setiap langkah | B-013-03, `docs/bukti/013/log/2026-10-26-P6.txt` | Abrar (L2) |
 | 2026-10-26 06.22 | P7 | Atur kapasitas jam praktikum | `scripts/ops/scale.sh 1 3`, lalu `scripts/ops/scale.sh 0 3` | `minScale` 1 lalu kembali 0, `maxScale` 3 | B-013-04, `docs/bukti/013/log/2026-10-26-P7.txt` | Abrar (L2) |
 | 2026-10-26 06.19 | P8 | Backup on-demand | `scripts/ops/sql-backup-now.sh` | Backup `1792970383825` tipe ON_DEMAND berstatus SUCCESSFUL; backup otomatis harian juga tercatat | B-013-05, `docs/bukti/013/log/2026-10-26-P8.txt` | Abrar (L2) |
-| > [ISI SETELAH DEPLOY] | P9 | Uji restore | `scripts/ops/sql-restore-test.sh` | | B-013-06 | |
-| > [ISI SETELAH DEPLOY] | P10 | Rotasi kunci JWT | `scripts/ops/rotate-secret.sh` | | B-013-07 | |
+| 2026-10-26 06.25 sampai 06.53 | P9 | Uji restore | `scripts/ops/sql-restore-test.sh` | LULUS dalam sekitar 27 menit (RTO 2 jam); 7 tabel diverifikasi; `users` 1 di salinan dan 2 di produksi karena akun demo dibuat setelah backup; instans sementara terhapus | B-013-06, B-013-20, `docs/bukti/013/restore-verification-20261026-0625.md` | Abrar (L2) |
+| 2026-10-26 07.32 | P10 | Rotasi kunci JWT | `scripts/ops/rotate-secret.sh` | Versi secret 2, revisi `labtrack-api-00006-klr`; token lama 200 sebelum rotasi dan 401 sesudahnya; login ulang 200 | B-013-07, `docs/bukti/013/log/2026-10-26-P10.txt` | Abrar (L2) |
 | 2026-10-26 01.23 | I1 | Cek backup pg_dump | `vm-ssh.sh "sudo systemctl start labtrack-backup.service"`, `gcloud storage ls -l` | Berkas `labtrack-20261025T182300Z.dump` 27.521 byte di bucket backup; timer malam aktif | B-013-08, `docs/bukti/013/log/2026-10-26-I6.txt` | Abrar (L2) |
 | 2026-10-26 06.29 | I3 | Patch OS VM | `scripts/ops/vm-patch.sh --snapshot` | Snapshot pra-patch READY, 2 paket diperbarui, layanan `active,active`, tidak perlu reboot, *change log* tertulis | B-013-09, B-013-19, `docs/bukti/013/log/2026-10-26-I3.txt`, `docs/bukti/013/change-log.md` | Abrar (L2) |
 | 2026-10-26 01.23 | I5 | SSH melalui IAP | `scripts/ops/vm-ssh.sh "..."` | Masuk lewat IAP tanpa IP publik; perintah backup dan `systemctl list-timers` berjalan | B-013-10, `docs/bukti/013/log/2026-10-26-I6.txt` | Abrar (L2) |
 | 2026-10-26 06.31 | I7 | Stop dan start VM | `scripts/ops/vm-start-stop.sh stop`, lalu `start` | TERMINATED lalu RUNNING, IP internal tetap `10.10.0.3` | B-013-11, `docs/bukti/013/log/2026-10-26-I7.txt` | Abrar (L2) |
-| > [ISI SETELAH DEPLOY] | S2 | Proteksi cabang main | GitHub Settings > Branches | | B-013-12 | |
+| 2026-10-26 07.05 | S2 | Proteksi cabang main | `gh api -X PUT repos/.../branches/main/protection` | Wajib *pull request*, wajib lulus `test`, `test-postgres`, `terraform`; *force push* dan penghapusan dilarang | B-013-12, `docs/bukti/013/log/2026-10-26-S2.txt` | Abrar (L2) |
 | 2026-10-26 06.22 | U1 | Provisioning akun asisten | `POST /auth/users` | HTTP 201 untuk `asisten.demo@labtrack.dev`; akun asisten ditolak 403 saat membuat mata kuliah | B-013-13, `docs/bukti/013/log/2026-10-26-U1.txt` | Abrar (L2) |
 | 2026-10-26 06.35 | U3, U4 | Penonaktifan akun dan reset password | `UPDATE users SET is_active=false ...`, `UPDATE users SET hashed_password=...` | Login dengan password benar ditolak 401 saat nonaktif, 200 setelah diaktifkan; akun demo dinonaktifkan lagi | B-013-14, `docs/bukti/013/log/2026-10-26-U3.txt` | Abrar (L2) |
 | 2026-10-26 01.16 | I10 | Laporan provisioning VM | `scripts/ops/vm-report.sh` | Debian 12, KVM, 2 vCPU, 969 MiB, IP internal saja, NAT keluar HTTP 200, 3 layanan aktif | B-013-18, `docs/bukti/013/vm-provisioning-20261026-0116.txt` | Abrar (L2) |
@@ -185,7 +185,7 @@ Format *change log* yang ditulis otomatis:
 
 | Waktu (WIB) | VM | Perubahan | Risiko | Backup sebelum perubahan | Uji pasca-pemeliharaan | Pelaksana |
 |---|---|---|---|---|---|---|
-| > [ISI SETELAH DEPLOY: dihasilkan oleh vm-patch.sh] | | | | | | |
+| 2026-10-26 06:29 | labtrack-ops | apt-get upgrade (Debian 12) | Layanan restart, kemungkinan perlu reboot kernel | snapshot labtrack-ops-manual-prepatch-20261025-232825 | active,active NO_REBOOT_REQUIRED | abrar |
 
 ## 7. Laporan provisioning VM
 

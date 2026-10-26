@@ -99,17 +99,43 @@ Bukti terbagi dua:
 
 ---
 
-## Ringkasan bukti otomatis
+## Ringkasan bukti
 
-| Bukti | Perintah | Hasil saat dokumen disusun (24 Oktober 2026) |
+Bukti visual (screenshot browser, grafik Cloud Monitoring, dan render keluaran terminal) terindeks di [bukti/screenshots/README.md](bukti/screenshots/README.md).
+
+### Google Cloud, proyek `labtrack-1026146` (26 Oktober 2026)
+
+| Bukti | Hasil | Berkas |
 |---|---|---|
-| Pengujian aplikasi dan skrip | `pytest -q --cov=app` | 65 test lulus, cakupan kode `app/` 94% |
+| Provisioning Terraform | 62 resource dibuat, `Apply complete` | `bukti/001/terraform-apply.txt`, `bukti/002/terraform-plan.txt` |
+| CI/CD GitHub Actions | test, test-postgres, terraform, deploy lulus; deploy tanpa kunci (WIF) | `bukti/002/github-actions-run.txt`, B-002-07 |
+| Uji integrasi Cloud Run + Cloud SQL | 9 dari 9 lulus | `bukti/002/integration-report.md` |
+| Uji beban 50 pengguna, 5 menit | 7.049 permintaan, 0 gagal, p95 69 ms, 23,58 RPS | `bukti/003/locust_stats.csv` |
+| Uji stress 100 sampai 300 pengguna | Titik jenuh 150 sampai 200 pengguna; hambatan batas 3 instans; galat 0,08% (429) | `bukti/003/stress_stats_history.csv`, `bukti/003/stress-monitoring.txt` |
+| Laporan provisioning VM | Debian 12 di KVM, tanpa IP publik, NAT keluar 200, 3 layanan aktif | `bukti/013/vm-provisioning-20261026-0116.txt` |
+| Backup `pg_dump` dari VM | 27.521 byte di bucket backup | `bukti/013/log/2026-10-26-I6.txt` |
+| Uji restore Cloud SQL | LULUS, sekitar 27 menit (RTO 2 jam) | `bukti/013/restore-verification-20261026-0625.md` |
+| Aktivitas rutin | Deploy, rollback, scale, backup, patch + *change log*, stop/start VM, akun, rotasi JWT, proteksi cabang | `bukti/013/log/` |
+| Pemantauan | 2 SLO, 6 alert, uptime check, kanal email, dasbor 8 widget | `bukti/014/monitoring-inventory.txt` |
+| Laporan SLA | Ketersediaan 99,857% berbasis permintaan; analisis penyimpangan karena uji terjadwal | `laporan-sla/2026-10-26_2026-10-26.md` |
+| Pelacakan `request_id` | Respons 404 ditemukan di Cloud Logging dengan ID yang sama | `bukti/015/request-id-trace.txt` |
+| Simulasi insiden | 503 dengan `request_id`, pulih sekitar 20 menit, 4 temuan tindak lanjut | `bukti/015/simulasi-insiden-gcp.txt` |
+| Hardening | Jaringan `default` dengan SSH/RDP terbuka dihapus | `bukti/013/log/2026-10-26-hardening.txt` |
+
+### Pemeriksaan otomatis
+
+| Bukti | Perintah | Hasil |
+|---|---|---|
+| Pengujian aplikasi dan skrip | `pytest -q --cov=app` | 68 test lulus, cakupan kode `app/` 94% |
 | Pengujian API di PostgreSQL 16 | `TEST_DATABASE_URL=postgresql+psycopg://... pytest tests/test_api.py tests/test_request_id.py tests/test_integration_check.py` | 33 test lulus |
 | Validasi Terraform | `terraform fmt -recursive && terraform validate` di `infra/terraform` | Valid (Terraform 1.9.8, provider google 6.50.0) |
 | Lint skrip operasional | `shellcheck -x scripts/ops/*.sh` | Tanpa temuan |
-| Uji integrasi end-to-end (lokal) | `scripts/api_integration_check.py` | 9 dari 9 lulus |
-| Uji beban (lokal) | Locust 50 pengguna, 2 menit | 2.953 permintaan, 0 gagal, p95 65 ms |
-| *Backup, restore, verify* (lokal) | `pg_dump`, `pg_restore`, perbandingan jumlah baris | 7 dari 7 tabel identik |
-| Simulasi insiden (lokal) | Basis data dihentikan lalu dinyalakan | 503 dengan `request_id`, pulih sekitar 39 detik |
 
-> [BUKTI: B-002-07, run GitHub Actions hijau yang menjalankan job test, test-postgres, dan terraform pada commit terakhir]
+### Lingkungan lokal (pembanding)
+
+| Bukti | Hasil |
+|---|---|
+| Uji integrasi | 9 dari 9 lulus |
+| Uji beban 50 pengguna, 2 menit | 2.953 permintaan, 0 gagal, p95 65 ms |
+| *Backup, restore, verify* | 7 dari 7 tabel identik |
+| Simulasi insiden | 503 dengan `request_id`, pulih sekitar 39 detik |

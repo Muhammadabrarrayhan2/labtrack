@@ -1,0 +1,42 @@
+Ringkasan otomatis dari docs/bukti/015/simulasi-insiden-gcp.txt (isi HTML halaman galat dipadatkan menjadi satu baris).
+
+Simulasi insiden LabTrack di Google Cloud (proyek labtrack-1026146). Waktu dalam UTC (WIB = UTC+7).
+Jam laptop sekitar 2 menit lebih cepat dari server Google; stempel waktu Cloud Logging adalah acuan resmi.
+== Kondisi awal
+2026-10-25T23:54:36Z  {"status":"ok","database":"ok","version":"1.0.1","environment":"production"} HTTP 200
+== 2026-10-25T23:54:36Z Insiden dipicu
+==> 2026-10-25T23:54:39Z setting activation policy of labtrack-db-f6f7 to NEVER
++ gcloud sql instances patch labtrack-db-f6f7 --project=labtrack-1026146 --activation-policy=NEVER --quiet
+Patching Cloud SQL instance...
+......done.
+==> Status of labtrack-db-f6f7
++ gcloud sql instances describe labtrack-db-f6f7 --project=labtrack-1026146 --format=table(name,state,settings.activationPolicy,settings.tier)
+NAME              STATE    ACTIVATION_POLICY  TIER
+labtrack-db-f6f7  STOPPED  NEVER              db-f1-micro
+== Pengamatan selama basis data mati (setiap 30 detik, sekitar 8 menit)
+2026-10-25T23:55:49Z  {"status":"degraded","database":"unreachable","request_id":"f993d3bbf83a2e2162459d5530371b6c"} HTTP 503
+2026-10-25T23:56:21Z  [halaman HTML '500 Server Error' dari Cloud Run, tanpa request_id] HTTP 500
+2026-10-25T23:56:51Z  [halaman HTML '500 Server Error' dari Cloud Run, tanpa request_id] HTTP 500
+2026-10-25T23:57:25Z  [halaman HTML '500 Server Error' dari Cloud Run, tanpa request_id] HTTP 500
+2026-10-25T23:57:55Z  [halaman HTML '500 Server Error' dari Cloud Run, tanpa request_id] HTTP 500
+2026-10-25T23:58:26Z  [halaman HTML '500 Server Error' dari Cloud Run, tanpa request_id] HTTP 500
+2026-10-25T23:58:56Z  [halaman HTML '500 Server Error' dari Cloud Run, tanpa request_id] HTTP 500
+2026-10-25T23:59:27Z  [halaman HTML '500 Server Error' dari Cloud Run, tanpa request_id] HTTP 500
+2026-10-26T00:00:08Z  [halaman HTML '500 Server Error' dari Cloud Run, tanpa request_id] HTTP 500
+2026-10-26T00:00:38Z  [halaman HTML '500 Server Error' dari Cloud Run, tanpa request_id] HTTP 500
+2026-10-26T00:01:09Z  [halaman HTML '500 Server Error' dari Cloud Run, tanpa request_id] HTTP 500
+2026-10-26T00:01:39Z  [halaman HTML '500 Server Error' dari Cloud Run, tanpa request_id] HTTP 500
+2026-10-26T00:02:09Z  [halaman HTML '500 Server Error' dari Cloud Run, tanpa request_id] HTTP 500
+2026-10-26T00:02:40Z  [halaman HTML '500 Server Error' dari Cloud Run, tanpa request_id] HTTP 500
+2026-10-26T00:03:10Z  [halaman HTML '500 Server Error' dari Cloud Run, tanpa request_id] HTTP 500
+2026-10-26T00:03:41Z  [halaman HTML '500 Server Error' dari Cloud Run, tanpa request_id] HTTP 500
+== 2026-10-26T00:04:11Z Pemulihan dimulai
+==> 2026-10-26T00:04:24Z setting activation policy of labtrack-db-f6f7 to ALWAYS
++ gcloud sql instances patch labtrack-db-f6f7 --project=labtrack-1026146 --activation-policy=ALWAYS --quiet
+Patching Cloud SQL instance...
+.................................failed.
+ERROR: (gcloud.sql.instances.patch) Operation https://sqladmin.googleapis.com/sql/v1beta4/projects/labtrack-1026146/operations/4a663eac-a6c9-4eea-878d-b02b00000045 is taking longer than expected. You can continue waiting for the operation by running `gcloud beta sql operations wait --project labtrack-1026146 4a663eac-a6c9-4eea-878d-b02b00000045`
+== Pengamatan sampai pulih
+2026-10-26T00:14:30Z  [halaman HTML '500 Server Error' dari Cloud Run, tanpa request_id] HTTP 500
+2026-10-26T00:15:01Z  {"status":"ok","database":"ok","version":"1.0.1","environment":"production"} HTTP 200
+== 2026-10-26T00:15:01Z Layanan pulih

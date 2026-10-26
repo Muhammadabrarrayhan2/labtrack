@@ -44,6 +44,18 @@ flowchart LR
 | SLOs | Cloud Monitoring service monitoring | 99.5% non-5xx requests and 95% under 800 ms over 30 days, fast-burn alert (`slo.tf`) |
 | Ops VM (optional, off by default) | Compute Engine e2-micro, Cloud NAT, IAP | Nightly `pg_dump` to a write-only bucket, daily disk snapshots (`iaas.tf`) |
 
+## Live deployment
+
+| | |
+|---|---|
+| API (Swagger UI) | https://labtrack-api-b26757zszq-et.a.run.app/docs |
+| Health | https://labtrack-api-b26757zszq-et.a.run.app/health |
+| Google Cloud project | `labtrack-1026146` (Cloud Run and Cloud SQL in `asia-southeast2`, ops VM in `us-central1`) |
+| CI/CD | [GitHub Actions](https://github.com/Muhammadabrarrayhan2/labtrack/actions) |
+| Evidence | [docs/00-PEMETAAN-UNIT-KOMPETENSI.md](docs/00-PEMETAAN-UNIT-KOMPETENSI.md), screenshots in [docs/bukti/screenshots](docs/bukti/screenshots) |
+
+Measured on Google Cloud on 26 October 2026: 50 users for 5 minutes gave 7,049 requests with no failures and a p95 of 69 ms; the stepped stress test saturated between 150 and 200 users at the 3-instance cap; a Cloud SQL restore test passed in about 27 minutes; a simulated database outage recovered in about 20 minutes.
+
 ## API overview
 
 Interactive docs are served at `/docs` (Swagger UI) and `/redoc`.
@@ -96,7 +108,7 @@ BASE_URL=http://localhost:8080 ADMIN_PASSWORD=AdminPass123 python scripts/seed_d
 pytest -q --cov=app --cov-report=term-missing
 ```
 
-65 tests: the original 19 API tests, 11 tests that every error response carries a `request_id` matching the `X-Request-ID` header and the log line, 3 end-to-end integration check tests, 17 tests for the SLA report math (request-based and uptime-based availability) on mocked Cloud Monitoring time series, 3 tests for the stress profile, and 12 tests for the ops scripts with fake `gcloud`, `psql` and `cloud-sql-proxy` binaries. Coverage of `app/` is about 94%. Set `TEST_DATABASE_URL` to run the API tests against PostgreSQL; CI does this with a PostgreSQL 16 service container (job `test-postgres`). CI also runs `shellcheck` and `terraform fmt -check` / `validate`.
+68 tests: the original 19 API tests, 3 JWT clock-skew tests, 11 tests that every error response carries a `request_id` matching the `X-Request-ID` header and the log line, 3 end-to-end integration check tests, 17 tests for the SLA report math (request-based and uptime-based availability) on mocked Cloud Monitoring time series, 3 tests for the stress profile, and 12 tests for the ops scripts with fake `gcloud`, `psql` and `cloud-sql-proxy` binaries. Coverage of `app/` is about 94%. Set `TEST_DATABASE_URL` to run the API tests against PostgreSQL; CI does this with a PostgreSQL 16 service container (job `test-postgres`). CI also runs `shellcheck` and `terraform fmt -check` / `validate`.
 
 ## Load test
 

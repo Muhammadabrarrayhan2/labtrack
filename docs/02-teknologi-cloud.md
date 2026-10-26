@@ -172,7 +172,14 @@ Angka di bawah adalah **perkiraan** dari harga katalog publik Google Cloud dan h
 | Cloud Monitoring dan Logging | Metrik bawaan, log di bawah 50 GiB | US$0 | Dalam kuota gratis |
 | VM `labtrack-ops` (opsional, mati secara bawaan) | e2-micro, disk standar 10 GB, Cloud NAT | Sekitar US$7 sampai 9 untuk VM dan disk di luar region tier gratis, ditambah sekitar US$1 per bulan untuk Cloud NAT (tarif per jam per VM) dan US$0,045 per GB data yang diproses NAT | Tier gratis e2-micro hanya berlaku di `us-west1`, `us-central1`, dan `us-east1` |
 
-> [ISI SETELAH DEPLOY: tangkapan layar estimasi Pricing Calculator dan laporan biaya aktual dari Billing > Reports, ID bukti B-002-02]
+Pengendalian biaya yang sudah diterapkan pada proyek `labtrack-1026146` (26 Oktober 2026):
+
+- Budget alert "LabTrack budget" Rp200.000 per bulan pada akun billing, dengan ambang 50%, 90%, 100%, dan 100% prakiraan (*forecasted*).
+- Cloud Run berskala ke nol dan CPU hanya dialokasikan saat melayani permintaan (`cpu_idle = true`).
+- VM ops ditempatkan di `us-central1` agar masuk tier gratis e2-micro, sedangkan layanan utama tetap di Jakarta.
+- Alert SLA dan VM ops berada di balik variabel boolean, sehingga dapat dimatikan setelah asesmen dengan satu `terraform apply`.
+
+> [BUKTI: B-002-02, Billing > Reports untuk proyek labtrack-1026146 dan halaman Budgets & alerts, diambil oleh pemilik akun billing]
 
 ## 4. Mekanisme ketersediaan dan akses
 
@@ -206,10 +213,10 @@ Angka di bawah adalah **perkiraan** dari harga katalog publik Google Cloud dan h
 
 | Jenis | Tujuan | Implementasi di LabTrack | Hasil |
 |---|---|---|---|
-| Unit dan fungsional | Kebenaran logika per fitur | `tests/test_api.py` dan lainnya, `pytest` | 65 test lulus, cakupan `app/` 94% |
+| Unit dan fungsional | Kebenaran logika per fitur | `tests/test_api.py` dan lainnya, `pytest` | 68 test lulus, cakupan `app/` 94% |
 | *Integration* | Data dan komunikasi antar-komponen (API, basis data, *storage*) | Job CI `test-postgres` menjalankan test API terhadap PostgreSQL 16; `scripts/api_integration_check.py` menguji alur lengkap terhadap API yang berjalan | Lokal: 33 test lulus di PostgreSQL 16; 9 dari 9 pemeriksaan integrasi lulus (`docs/bukti/lokal/integration-report.md`) |
-| *Performance* | p95, *throughput*, *error rate* pada beban tertentu | Locust 50 pengguna (`scripts/loadtest/locustfile.py`) | Lokal: 24,87 RPS, p95 65 ms, 0% gagal (`docs/03-kebutuhan-perangkat-keras.md` bagian 5.4) |
-| *Stress* | Perilaku saat kelebihan beban dan pemulihannya | Locust `LOAD_SHAPE=stress`: 100, 150, 200, 250, 300 pengguna lalu turun ke 20 | Diisi setelah dijalankan di Google Cloud (`docs/03-kebutuhan-perangkat-keras.md` bagian 6) |
+| *Performance* | p95, *throughput*, *error rate* pada beban tertentu | Locust 50 pengguna (`scripts/loadtest/locustfile.py`) | Google Cloud: 7.049 permintaan, 23,58 RPS, p95 69 ms, 0% gagal; lokal: 24,87 RPS, p95 65 ms (`docs/03-kebutuhan-perangkat-keras.md` bagian 5) |
+| *Stress* | Perilaku saat kelebihan beban dan pemulihannya | Locust `LOAD_SHAPE=stress`: 100, 150, 200, 250, 300 pengguna lalu turun ke 20 | Google Cloud: titik jenuh antara 150 dan 200 pengguna (p95 466 ms pada 150, 5,6 detik pada 200), hambatan pada batas 3 instans, galat 0,08% berupa 429 (`docs/03-kebutuhan-perangkat-keras.md` bagian 6) |
 
 ## 8. Referensi
 

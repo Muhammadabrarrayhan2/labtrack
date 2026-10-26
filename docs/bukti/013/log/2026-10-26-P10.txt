@@ -1,0 +1,27 @@
++ token lama sebelum rotasi: GET /auth/me -> 200
+
+==> Current versions of labtrack-jwt-secret
++ gcloud secrets versions list labtrack-jwt-secret --project=labtrack-1026146 --limit=3
+NAME  STATE    CREATED              DESTROYED
+1     enabled  2026-10-25T17:56:27  -
+
+==> Adding a new random version (48 characters, value not printed)
++ gcloud secrets versions add labtrack-jwt-secret --project=labtrack-1026146 --data-file=-
+Created version [2] of the secret [labtrack-jwt-secret].
+
+==> Forcing a new revision so every instance loads the new secret
++ gcloud run services update labtrack-api --project=labtrack-1026146 --region=asia-southeast2 --update-labels=jwt-rotated-at=20261026-002705 --quiet
+Deploying...
+Creating Revision......................................................................................................................done
+Routing traffic.....done
+Done.
+Service [labtrack-api] revision [labtrack-api-00006-klr] has been deployed and is serving 100 percent of traffic.
+Service URL: https://labtrack-api-746146134471.asia-southeast2.run.app
+
+==> Smoke test
++ curl -fsS https://labtrack-api-b26757zszq-et.a.run.app/health
+{"status":"ok","database":"ok","version":"1.0.1","environment":"production"}
+Rotated. Old versions stay enabled but unused; disable one with:
+  gcloud secrets versions disable <version> --secret=labtrack-jwt-secret --project=labtrack-1026146
++ token lama setelah rotasi: GET /auth/me -> {"detail":"Invalid or expired token","request_id":"123516e954822ee76ede4d9cc5ff60e1"} HTTP 401
++ login ulang lalu GET /auth/me -> 200

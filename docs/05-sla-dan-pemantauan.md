@@ -158,21 +158,26 @@ Skrip mengambil `request_count` per kelas kode respons dan distribusi `request_l
 
 Berkas `docs/laporan-sla/YYYY-MM.md` dihasilkan otomatis dengan struktur di bawah. Bagian insiden dan tindak lanjut diisi manual.
 
+Laporan pertama dihasilkan pada 26 Oktober 2026 untuk periode hari itu (data Cloud Monitoring sejak deploy pukul 01.06 WIB), berkas `docs/laporan-sla/2026-10-26_2026-10-26.md`.
+
 | Indikator | Target | Realisasi | Status |
 |---|---|---|---|
-| Ketersediaan (permintaan non-5xx) | 99,5% | > [ISI SETELAH DEPLOY: dari sla_report.py] | |
-| Latensi p95 | < 800 ms | > [ISI SETELAH DEPLOY] | |
-| Permintaan di bawah 800 ms | 95% | > [ISI SETELAH DEPLOY] | |
+| Ketersediaan (permintaan non-5xx) | 99,5% | 99,857% | Tercapai |
+| Latensi p95 | < 800 ms | 4.928 ms | Tidak tercapai |
+| Permintaan di bawah 800 ms | 95% | 61,79% | Tidak tercapai |
+| Ketersediaan berbasis waktu (uptime check) | 99,5% | 94,521% (20 menit henti dari 73 jendela 5 menit) | Tidak tercapai |
 
 | Besaran | Nilai |
 |---|---|
-| Total permintaan | > [ISI SETELAH DEPLOY] |
-| Permintaan 5xx | > [ISI SETELAH DEPLOY] |
-| Anggaran galat terpakai | > [ISI SETELAH DEPLOY] |
-| Insiden (jumlah, total durasi) | > [ISI SETELAH DEPLOY: dari issue berlabel insiden] |
-| Status SLA | > [ISI SETELAH DEPLOY: Tercapai atau Tidak tercapai] |
+| Total permintaan | 34.342 |
+| Permintaan 5xx | 49 |
+| Anggaran galat terpakai | 28,5% |
+| Insiden | 1 simulasi terjadwal (P1), sekitar 20 menit, `docs/06-sop-dukungan-teknis.md` bagian 6.3 |
+| Status SLA mentah | Tidak tercapai |
 
-> [BUKTI: B-014-05, berkas docs/laporan-sla/2026-10.md hasil skrip, ditambah screenshot terminal saat skrip dijalankan]
+**Analisis penyimpangan (bagian 8):** seluruh penyimpangan berasal dari pengujian yang disengaja dan terjadwal, yaitu uji *stress* 100 sampai 300 pengguna (01.22 sampai 01.32 WIB) yang sengaja melampaui kapasitas, dan simulasi insiden (06.54 sampai 07.15 WIB). Menurut pengecualian bagian 1.1, jendela tersebut dikeluarkan dari perhitungan SLA tetapi tetap dicatat sebagai pemakaian anggaran galat. Di luar kedua jendela itu, operasi rutin pada uji beban 50 pengguna menunjukkan p95 69 ms tanpa galat (`docs/03-kebutuhan-perangkat-keras.md` bagian 5.2). Periode satu hari dengan pengujian berat ini tidak mewakili pemakaian normal; laporan bulanan November 2026 akan menjadi pengukuran representatif pertama.
+
+> [BUKTI: B-014-05 `docs/bukti/screenshots/B-014-05-sla-report.png`, terminal di `docs/bukti/014/sla-report-terminal.txt`]
 
 ## 7. Pemantauan per lapisan infrastruktur
 

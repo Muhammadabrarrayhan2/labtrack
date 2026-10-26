@@ -1,0 +1,214 @@
+Simulasi insiden LabTrack di Google Cloud (proyek labtrack-1026146). Waktu dalam UTC (WIB = UTC+7).
+Jam laptop sekitar 2 menit lebih cepat dari server Google; stempel waktu Cloud Logging adalah acuan resmi.
+
+== Kondisi awal
+2026-10-25T23:54:36Z  {"status":"ok","database":"ok","version":"1.0.1","environment":"production"} HTTP 200
+
+== 2026-10-25T23:54:36Z Insiden dipicu
+
+==> 2026-10-25T23:54:39Z setting activation policy of labtrack-db-f6f7 to NEVER
++ gcloud sql instances patch labtrack-db-f6f7 --project=labtrack-1026146 --activation-policy=NEVER --quiet
+The following message will be used for the patch API method.
+{"name": "labtrack-db-f6f7", "project": "labtrack-1026146", "settings": {"activationPolicy": "NEVER"}}
+Patching Cloud SQL instance...
+......done.
+Updated [https://sqladmin.googleapis.com/sql/v1beta4/projects/labtrack-1026146/instances/labtrack-db-f6f7].
+
+==> Status of labtrack-db-f6f7
++ gcloud sql instances describe labtrack-db-f6f7 --project=labtrack-1026146 --format=table(name,state,settings.activationPolicy,settings.tier)
+NAME              STATE    ACTIVATION_POLICY  TIER
+labtrack-db-f6f7  STOPPED  NEVER              db-f1-micro
+
+== Pengamatan selama basis data mati (setiap 30 detik, sekitar 8 menit)
+2026-10-25T23:55:49Z  {"status":"degraded","database":"unreachable","request_id":"f993d3bbf83a2e2162459d5530371b6c"} HTTP 503
+2026-10-25T23:56:21Z  
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>500 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+ HTTP 500
+2026-10-25T23:56:51Z  
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>500 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+ HTTP 500
+2026-10-25T23:57:25Z  
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>500 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+ HTTP 500
+2026-10-25T23:57:55Z  
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>500 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+ HTTP 500
+2026-10-25T23:58:26Z  
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>500 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+ HTTP 500
+2026-10-25T23:58:56Z  
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>500 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+ HTTP 500
+2026-10-25T23:59:27Z  
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>500 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+ HTTP 500
+2026-10-26T00:00:08Z  
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>500 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+ HTTP 500
+2026-10-26T00:00:38Z  
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>500 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+ HTTP 500
+2026-10-26T00:01:09Z  
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>500 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+ HTTP 500
+2026-10-26T00:01:39Z  
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>500 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+ HTTP 500
+2026-10-26T00:02:09Z  
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>500 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+ HTTP 500
+2026-10-26T00:02:40Z  
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>500 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+ HTTP 500
+2026-10-26T00:03:10Z  
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>500 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+ HTTP 500
+2026-10-26T00:03:41Z  
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>500 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+ HTTP 500
+
+== 2026-10-26T00:04:11Z Pemulihan dimulai
+
+==> 2026-10-26T00:04:24Z setting activation policy of labtrack-db-f6f7 to ALWAYS
++ gcloud sql instances patch labtrack-db-f6f7 --project=labtrack-1026146 --activation-policy=ALWAYS --quiet
+The following message will be used for the patch API method.
+{"name": "labtrack-db-f6f7", "project": "labtrack-1026146", "settings": {"activationPolicy": "ALWAYS"}}
+Patching Cloud SQL instance...
+.................................failed.
+ERROR: (gcloud.sql.instances.patch) Operation https://sqladmin.googleapis.com/sql/v1beta4/projects/labtrack-1026146/operations/4a663eac-a6c9-4eea-878d-b02b00000045 is taking longer than expected. You can continue waiting for the operation by running `gcloud beta sql operations wait --project labtrack-1026146 4a663eac-a6c9-4eea-878d-b02b00000045`
+
+== Pengamatan sampai pulih
+2026-10-26T00:14:30Z  
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>500 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+ HTTP 500
+2026-10-26T00:15:01Z  {"status":"ok","database":"ok","version":"1.0.1","environment":"production"} HTTP 200
+
+== 2026-10-26T00:15:01Z Layanan pulih

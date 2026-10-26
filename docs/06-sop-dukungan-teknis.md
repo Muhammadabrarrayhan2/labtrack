@@ -240,51 +240,51 @@ scripts/ops/sql-start-stop.sh start
 curl -s -w ' HTTP %{http_code}\n' "$API/health"
 ```
 
-### 6.3 Laporan insiden (diisi setelah simulasi)
+### 6.3 Laporan insiden Google Cloud (dijalankan 26 Oktober 2026)
+
+Simulasi dijalankan terhadap proyek `labtrack-1026146` dengan skrip pengamatan yang mencatat `/health` setiap 30 detik. Keluaran lengkap ada di `docs/bukti/015/simulasi-insiden-gcp.txt`, versi ringkasnya di `docs/bukti/015/simulasi-insiden-gcp-ringkas.txt`, dan waktu operasi resmi Cloud SQL di `docs/bukti/015/cloudsql-operations.txt`.
+
+Catatan waktu: kolom "Laptop" berasal dari jam laptop pelaksana yang sekitar 2 menit lebih cepat dari server Google. Kolom "Google" berasal dari catatan operasi Cloud SQL dan dipakai sebagai acuan resmi. Semua waktu dalam WIB.
 
 | Butir | Isi |
 |---|---|
-| Nomor issue | > [ISI SETELAH DEPLOY: #nomor issue laporan-insiden] |
-| Tingkat | P1 (simulasi) |
+| Tingkat | P1 (simulasi terjadwal) |
 | SLI terdampak | Ketersediaan |
-| Waktu mulai (perintah stop dijalankan) | > [ISI SETELAH DEPLOY: HH.MM WIB] |
-| Waktu `/health` pertama kali 503 | > [ISI SETELAH DEPLOY] |
-| Waktu alert email diterima | > [ISI SETELAH DEPLOY] |
-| Waktu perintah start dijalankan | > [ISI SETELAH DEPLOY] |
-| Waktu `/health` kembali 200 | > [ISI SETELAH DEPLOY] |
-| Waktu deteksi (alert dikurangi mulai) | > [ISI SETELAH DEPLOY: menit] |
-| Waktu pemulihan (200 dikurangi mulai) | > [ISI SETELAH DEPLOY: menit, bandingkan dengan RTO 2 jam] |
-| Contoh `request_id` dari respons 503 | > [ISI SETELAH DEPLOY] |
-| Respons Cloud Run tanpa `request_id` teramati? | > [ISI SETELAH DEPLOY: ya atau tidak, lihat catatan 5.5] |
-| Anggaran galat terpakai | > [ISI SETELAH DEPLOY: dari Monitoring > SLOs] |
+| Mulai (perintah stop) | 06.54.36 laptop; operasi stop Cloud SQL 06.52.25 sampai 06.53.08 Google |
+| `/health` pertama kali 503 | 06.55.49 laptop, `request_id` `f993d3bbf83a2e2162459d5530371b6c` |
+| Perilaku setelahnya | 16 pengamatan berturut-turut berupa halaman HTML `500 Server Error` milik Cloud Run, tanpa `request_id` |
+| Perintah start | 07.04.11 laptop; operasi start Cloud SQL 07.02.11 sampai 07.13.06 Google (hampir 11 menit) |
+| `/health` kembali 200 | 07.15.01 laptop (sekitar 07.13 Google) |
+| Waktu henti terukur uptime check | 20 menit (4 jendela 5 menit), `docs/laporan-sla/2026-10-26_2026-10-26.md` |
+| Waktu pemulihan sejak start | sekitar 11 menit; total gangguan sekitar 20 menit, di bawah RTO 2 jam |
+| Contoh `request_id` | `f993d3bbf83a2e2162459d5530371b6c` (503 dari aplikasi) |
+| Respons Cloud Run tanpa `request_id` | Ya, teramati, sesuai catatan di bagian 5.5 |
+| Anggaran galat terpakai (hari ini) | 28,5% (49 permintaan 5xx dari 34.342) |
 
 Kronologi:
 
-| Waktu (WIB) | Kejadian | Oleh |
+| Waktu (WIB, laptop) | Kejadian | Oleh |
 |---|---|---|
-| > [ISI SETELAH DEPLOY] | Pemberitahuan simulasi dikirim ke pengguna | L2 |
-| > [ISI SETELAH DEPLOY] | `scripts/ops/sql-start-stop.sh stop` dijalankan | L2 |
-| > [ISI SETELAH DEPLOY] | `/health` mengembalikan 503 | Sistem |
-| > [ISI SETELAH DEPLOY] | Email alert "LabTrack API is down" diterima | Sistem |
-| > [ISI SETELAH DEPLOY] | Diagnosis: `state=STOPPED`, sesuai panduan 5.5 penyebab 1 | L2 |
-| > [ISI SETELAH DEPLOY] | `scripts/ops/sql-start-stop.sh start` dijalankan | L2 |
-| > [ISI SETELAH DEPLOY] | `/health` kembali 200 | Sistem |
-| > [ISI SETELAH DEPLOY] | Alert tertutup otomatis | Sistem |
-| > [ISI SETELAH DEPLOY] | Pemberitahuan pemulihan dikirim | L2 |
+| 06.54.36 | `/health` 200; `scripts/ops/sql-start-stop.sh stop` dijalankan | L2 |
+| 06.55.49 | `/health` 503 `database: unreachable` dengan `request_id` | Sistem |
+| 06.56.21 sampai 07.03.41 | Cloud Run mengembalikan halaman HTML 500 karena *startup probe* instans baru gagal saat basis data mati | Sistem |
+| sekitar 07.00 | Uptime check `/health` gagal dari seluruh region (grafik `docs/bukti/screenshots/B-014-04-uptime-check.png`) | Sistem |
+| 07.04.11 | `scripts/ops/sql-start-stop.sh start` dijalankan. Perintah `gcloud` berhenti menunggu dengan pesan *taking longer than expected*, tetapi operasi di Google tetap berjalan | L2 |
+| 07.13.06 (Google) | Operasi start Cloud SQL selesai | Sistem |
+| 07.15.01 | `/health` kembali 200, versi 1.0.1, tanpa *restart* manual | Sistem |
 
 Akar masalah (simulasi): instans Cloud SQL dihentikan secara sengaja (`activation-policy=NEVER`).
 
-Tindak lanjut:
+Temuan dan tindak lanjut:
 
-> [ISI SETELAH DEPLOY: hasil pengamatan nyata, misalnya apakah waktu deteksi perlu dipercepat dengan menurunkan periode uptime check dari 300 detik, dan apakah liveness probe sebaiknya tidak bergantung pada basis data]
+1. **Waktu pemulihan didominasi start Cloud SQL (sekitar 11 menit), bukan Cloud Run.** Aplikasi langsung sehat begitu basis data siap. Konsekuensinya, menghentikan Cloud SQL untuk hemat biaya harus dilakukan di luar jam praktikum, dan menyalakannya kembali minimal 15 menit sebelum sesi.
+2. **Sebagian respons selama gangguan tidak membawa `request_id`.** Cloud Run mengembalikan halaman galat miliknya sendiri karena *startup probe* bergantung pada `/health` yang memeriksa basis data. Rekomendasi: pisahkan *liveness/startup probe* dari pemeriksaan basis data, sehingga instans tetap menyala dan aplikasi yang menjawab 503 lengkap dengan `request_id`.
+3. **Perintah `gcloud` dapat berhenti menunggu sebelum operasi Cloud SQL selesai.** SOP 5.5 ditambah langkah verifikasi dengan `gcloud sql operations list --instance=<instance>` sebelum menyimpulkan start gagal.
+4. **Deteksi berjalan sesuai rancangan:** uptime check mencatat 20 menit henti dan SLI berbasis permintaan mencatat 49 respons 5xx; keduanya tercermin di laporan SLA.
 
-> [BUKTI: screenshot B-015-03, terminal yang menampilkan perintah stop, rangkaian respons 503, perintah start, dan respons 200]
+> [BUKTI: B-015-03 `docs/bukti/screenshots/B-015-03-incident-timeline.png`, B-015-05 `docs/bukti/screenshots/B-014-07-requests-by-class.png` (lonjakan 5xx), B-014-04 `docs/bukti/screenshots/B-014-04-uptime-check.png`]
 
-> [BUKTI: screenshot B-015-04, email alert yang diterima]
-
-> [BUKTI: screenshot B-015-05, Logs Explorer dengan kueri jsonPayload.request_id dari respons 503]
-
-> [BUKTI: screenshot B-015-06, Monitoring > Alerting > Incidents yang menampilkan insiden terbuka lalu tertutup]
+> [BUKTI: B-015-04, email alert "LabTrack API is down" di kotak masuk abrarrayhan8@gmail.com, diambil oleh pemilik akun]
 
 ## 7. Templat komunikasi
 

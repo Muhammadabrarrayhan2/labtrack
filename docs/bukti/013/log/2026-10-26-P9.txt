@@ -1,0 +1,73 @@
+
+==> Latest successful backup of labtrack-db-f6f7
++ gcloud sql backups describe 1792970383825 --instance=labtrack-db-f6f7 --project=labtrack-1026146 --format=table(id,windowStartTime,type,status)
+ID             WINDOW_START_TIME         TYPE       STATUS
+1792970383825  2026-10-25T23:19:43.825Z  ON_DEMAND  SUCCESSFUL
+
+==> Creating temporary instance labtrack-restore-test-202610252325 (about 5 to 10 minutes)
++ gcloud sql instances create labtrack-restore-test-202610252325 --project=labtrack-1026146 --region=asia-southeast2 --database-version=POSTGRES_16 --edition=ENTERPRISE --tier=db-f1-micro --storage-type=SSD --storage-size=10 --no-backup --availability-type=zonal
+Creating Cloud SQL instance for POSTGRES_16...
+....................................done.
+Created [https://sqladmin.googleapis.com/sql/v1beta4/projects/labtrack-1026146/instances/labtrack-restore-test-202610252325].
+NAME                                DATABASE_VERSION  LOCATION           TIER         PRIMARY_ADDRESS  PRIVATE_ADDRESS  STATUS
+labtrack-restore-test-202610252325  POSTGRES_16       asia-southeast2-b  db-f1-micro  34.101.40.134    -                RUNNABLE
+
+==> Restoring backup 1792970383825 into labtrack-restore-test-202610252325
++ gcloud sql backups restore 1792970383825 --restore-instance=labtrack-restore-test-202610252325 --backup-instance=labtrack-db-f6f7 --project=labtrack-1026146 --quiet
+Restoring Cloud SQL instance...
+....................................done.
+Restored [https://sqladmin.googleapis.com/sql/v1beta4/projects/labtrack-1026146/instances/labtrack-restore-test-202610252325].
+
+==> Opening Cloud SQL Auth Proxy to both instances
+2026/10/26 06:53:19 Authorizing with Application Default Credentials
+2026/10/26 06:53:19 [labtrack-1026146:asia-southeast2:labtrack-db-f6f7] Listening on 127.0.0.1:6541
+2026/10/26 06:53:19 [labtrack-1026146:asia-southeast2:labtrack-restore-test-202610252325] Listening on 127.0.0.1:6542
+2026/10/26 06:53:19 The proxy has started successfully and is ready for new connections!
+
+==> Row counts (production on port 6541, restored copy on port 6542)
+table                  production     restored check
+2026/10/26 06:53:29 [labtrack-1026146:asia-southeast2:labtrack-db-f6f7] Accepted connection from 127.0.0.1:51614
+2026/10/26 06:53:30 [labtrack-1026146:asia-southeast2:labtrack-db-f6f7] client closed the connection
+2026/10/26 06:53:31 [labtrack-1026146:asia-southeast2:labtrack-restore-test-202610252325] Accepted connection from 127.0.0.1:51621
+2026/10/26 06:53:31 [labtrack-1026146:asia-southeast2:labtrack-restore-test-202610252325] client closed the connection
+users                           2            1 OK
+2026/10/26 06:53:31 [labtrack-1026146:asia-southeast2:labtrack-db-f6f7] Accepted connection from 127.0.0.1:51623
+2026/10/26 06:53:32 [labtrack-1026146:asia-southeast2:labtrack-db-f6f7] client closed the connection
+2026/10/26 06:53:32 [labtrack-1026146:asia-southeast2:labtrack-restore-test-202610252325] Accepted connection from 127.0.0.1:51625
+2026/10/26 06:53:32 [labtrack-1026146:asia-southeast2:labtrack-restore-test-202610252325] client closed the connection
+students                       12           12 OK
+2026/10/26 06:53:33 [labtrack-1026146:asia-southeast2:labtrack-db-f6f7] Accepted connection from 127.0.0.1:56212
+2026/10/26 06:53:33 [labtrack-1026146:asia-southeast2:labtrack-db-f6f7] client closed the connection
+2026/10/26 06:53:33 [labtrack-1026146:asia-southeast2:labtrack-restore-test-202610252325] Accepted connection from 127.0.0.1:56214
+2026/10/26 06:53:33 [labtrack-1026146:asia-southeast2:labtrack-restore-test-202610252325] client closed the connection
+courses                         1            1 OK
+2026/10/26 06:53:34 [labtrack-1026146:asia-southeast2:labtrack-db-f6f7] Accepted connection from 127.0.0.1:56217
+2026/10/26 06:53:34 [labtrack-1026146:asia-southeast2:labtrack-db-f6f7] client closed the connection
+2026/10/26 06:53:34 [labtrack-1026146:asia-southeast2:labtrack-restore-test-202610252325] Accepted connection from 127.0.0.1:56219
+2026/10/26 06:53:35 [labtrack-1026146:asia-southeast2:labtrack-restore-test-202610252325] client closed the connection
+enrollments                    12           12 OK
+2026/10/26 06:53:35 [labtrack-1026146:asia-southeast2:labtrack-db-f6f7] Accepted connection from 127.0.0.1:56221
+2026/10/26 06:53:35 [labtrack-1026146:asia-southeast2:labtrack-db-f6f7] client closed the connection
+2026/10/26 06:53:36 [labtrack-1026146:asia-southeast2:labtrack-restore-test-202610252325] Accepted connection from 127.0.0.1:56223
+2026/10/26 06:53:36 [labtrack-1026146:asia-southeast2:labtrack-restore-test-202610252325] client closed the connection
+practicum_sessions              4            4 OK
+2026/10/26 06:53:36 [labtrack-1026146:asia-southeast2:labtrack-db-f6f7] Accepted connection from 127.0.0.1:56225
+2026/10/26 06:53:36 [labtrack-1026146:asia-southeast2:labtrack-db-f6f7] client closed the connection
+2026/10/26 06:53:37 [labtrack-1026146:asia-southeast2:labtrack-restore-test-202610252325] Accepted connection from 127.0.0.1:56227
+2026/10/26 06:53:37 [labtrack-1026146:asia-southeast2:labtrack-restore-test-202610252325] client closed the connection
+attendances                    48           48 OK
+2026/10/26 06:53:37 [labtrack-1026146:asia-southeast2:labtrack-db-f6f7] Accepted connection from 127.0.0.1:56229
+2026/10/26 06:53:38 [labtrack-1026146:asia-southeast2:labtrack-db-f6f7] client closed the connection
+2026/10/26 06:53:38 [labtrack-1026146:asia-southeast2:labtrack-restore-test-202610252325] Accepted connection from 127.0.0.1:56231
+2026/10/26 06:53:38 [labtrack-1026146:asia-southeast2:labtrack-restore-test-202610252325] client closed the connection
+lab_reports                    41           41 OK
+
+==> Restore test finished in about 27 minutes (compare with RTO 2 hours)
+Report written to docs/bukti/013/restore-verification-20261026-0625.md
+Restore test passed. Backup 1792970383825 is usable.
+
+==> Deleting temporary instance labtrack-restore-test-202610252325
++ gcloud sql instances delete labtrack-restore-test-202610252325 --project=labtrack-1026146 --quiet
+Deleting Cloud SQL instance...
+..........done.
+Deleted [https://sqladmin.googleapis.com/sql/v1beta4/projects/labtrack-1026146/instances/labtrack-restore-test-202610252325].
