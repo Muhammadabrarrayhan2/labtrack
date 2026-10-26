@@ -4,9 +4,9 @@ kicker: Manual pengguna · Versi aplikasi 1.0.2
 subtitle: Panduan untuk asisten praktikum dan koordinator laboratorium
 header: Manual Pengguna LabTrack
 numbered: yes
-meta: **Alamat aplikasi:** https://labtrack-api-b26757zszq-et.a.run.app
-meta: **Berlaku untuk:** antarmuka web di /app/ dan API di /docs
-meta: **Disusun oleh:** [Nama lengkap peserta]
+meta: **Alamat aplikasi:** https://labtrack-api-b26757zszq-et.a.run.app/app/
+meta: **Dokumentasi API:** https://labtrack-api-b26757zszq-et.a.run.app/docs
+meta: **Disusun oleh:** Muhammad Abrar Rayhan
 meta: **Tanggal:** 26 Oktober 2026
 ---
 # Mengenal LabTrack

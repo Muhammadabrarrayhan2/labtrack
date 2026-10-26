@@ -30,7 +30,32 @@ ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "docs" / "word" / "src"
 OUT = ROOT / "docs" / "word"
 ACCENT = RGBColor(0x0D, 0x4F, 0x5C)
-INLINE = re.compile(r"(\*\*[^*]+\*\*|`[^`]+`|\*[^*]+\*)")
+INLINE = re.compile(r"(\*\*[^*]+\*\*|`[^`]+`|\*[^*]+\*|https?://[^\s)]*[^\s).,])")
+
+
+def add_hyperlink(paragraph, url, size=None):
+    """Clickable link run; python-docx has no API for external hyperlinks."""
+    from docx.opc.constants import RELATIONSHIP_TYPE as RT
+
+    r_id = paragraph.part.relate_to(url, RT.HYPERLINK, is_external=True)
+    link = OxmlElement("w:hyperlink")
+    link.set(qn("r:id"), r_id)
+    run = OxmlElement("w:r")
+    r_pr = OxmlElement("w:rPr")
+    color = OxmlElement("w:color")
+    color.set(qn("w:val"), "0D4F5C")
+    underline = OxmlElement("w:u")
+    underline.set(qn("w:val"), "single")
+    r_pr.extend([color, underline])
+    if size:
+        sz = OxmlElement("w:sz")
+        sz.set(qn("w:val"), str(int(size * 2)))
+        r_pr.append(sz)
+    text = OxmlElement("w:t")
+    text.text = url
+    run.extend([r_pr, text])
+    link.append(run)
+    paragraph._p.append(link)
 
 
 def set_cell_shading(cell, hex_fill):
@@ -82,6 +107,9 @@ def add_field(run, instr):
 def add_inline(paragraph, text, size=None):
     for part in INLINE.split(text):
         if not part:
+            continue
+        if part.startswith(("http://", "https://")):
+            add_hyperlink(paragraph, part, size)
             continue
         if part.startswith("**") and part.endswith("**"):
             run = paragraph.add_run(part[2:-2])

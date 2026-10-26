@@ -6,10 +6,11 @@ header: Penerapan Arsitektur Serverless dan SLO pada Sistem Pencatatan Praktikum
 numbered: yes
 toc: no
 cover: compact
-meta: **Penulis:** [Nama lengkap peserta]
+meta: **Penulis:** Muhammad Abrar Rayhan
 meta: **Afiliasi:** [Program studi, institusi]
 meta: **Korespondensi:** [alamat surel penulis]
-meta: **Kode dan data:** github.com/Muhammadabrarrayhan2/labtrack
+meta: **Kode dan data:** https://github.com/Muhammadabrarrayhan2/labtrack
+meta: **Aplikasi web:** https://labtrack-api-b26757zszq-et.a.run.app/app/
 ---
 # !Abstrak
 

@@ -4,18 +4,19 @@ numbered: yes
 kicker: Laporan proyek · Portofolio uji kompetensi Cloud Computing Engineer
 subtitle: Perancangan, deployment, dan operasi sistem pencatatan praktikum laboratorium di Google Cloud
 header: Laporan Proyek LabTrack
-meta: **Disusun oleh:** [Nama lengkap peserta]
+meta: **Disusun oleh:** Muhammad Abrar Rayhan
 meta: **Skema:** Cloud Computing Engineer, SKKNI Nomor 456 Tahun 2015
 meta: **Asesmen:** Selasa, 27 Oktober 2026
-meta: **Repositori:** github.com/Muhammadabrarrayhan2/labtrack
-meta: **Layanan aktif:** labtrack-api-b26757zszq-et.a.run.app
+meta: **Repositori:** https://github.com/Muhammadabrarrayhan2/labtrack
+meta: **Aplikasi web:** https://labtrack-api-b26757zszq-et.a.run.app/app/
+meta: **Dokumentasi API:** https://labtrack-api-b26757zszq-et.a.run.app/docs
 meta: **Versi aplikasi:** 1.0.2 · Data pengujian diambil 26 Oktober 2026
 ---
 # !Ringkasan eksekutif
 
 LabTrack adalah sistem pencatatan praktikum untuk laboratorium kampus. Asisten memakainya untuk mengisi kehadiran setiap sesi, menerima laporan PDF dari mahasiswa, lalu memberi nilai. Koordinator memakai rekapnya untuk melihat siapa yang kehadirannya sudah di bawah batas sebelum ujian. Sebelum ada LabTrack, pekerjaan ini biasanya tersebar di lembar kerja yang disalin dari satu asisten ke asisten lain, dan laporan PDF dikirim lewat surel atau grup percakapan.
 
-Proyek ini saya bangun sebagai bukti portofolio (APL02) untuk uji kompetensi skema Cloud Computing Engineer. Karena itu ukurannya sengaja dibuat realistis: satu layanan web yang benar-benar berjalan di Google Cloud, dipasang dengan Terraform, dirilis lewat GitHub Actions, dipantau dengan SLO, dan sudah melewati uji beban, simulasi insiden, serta uji pemulihan cadangan. Semua angka dalam laporan ini berasal dari pengujian di proyek `labtrack-1026146` pada 26 Oktober 2026. Kalau ada data contoh, saya beri label "contoh".
+Proyek ini saya bangun sebagai bukti portofolio (APL02) untuk uji kompetensi skema Cloud Computing Engineer. Karena itu ukurannya sengaja dibuat realistis: satu layanan web yang benar-benar berjalan di Google Cloud, dipasang dengan Terraform, dirilis lewat GitHub Actions, dipantau dengan SLO, dan sudah melewati uji beban, simulasi insiden, serta uji pemulihan cadangan. Semua angka dalam laporan ini berasal dari pengujian di proyek `labtrack-1026146` pada 26 Oktober 2026. Kalau ada data contoh, saya beri label "contoh". Aplikasinya bisa dicoba langsung di https://labtrack-api-b26757zszq-et.a.run.app/app/ dan dokumentasi API-nya di https://labtrack-api-b26757zszq-et.a.run.app/docs.
 
 Tabel: Hasil utama pengujian di Google Cloud
 | Aspek | Hasil | Keterangan |

@@ -5,9 +5,11 @@ subtitle: Arsitektur, konfigurasi, API, infrastruktur, CI/CD, operasi, dan pemul
 header: Dokumentasi Teknis LabTrack
 numbered: yes
 meta: **Versi aplikasi:** 1.0.2 (commit 81840b2)
+meta: **Aplikasi web:** https://labtrack-api-b26757zszq-et.a.run.app/app/
+meta: **Dokumentasi API:** https://labtrack-api-b26757zszq-et.a.run.app/docs
 meta: **Proyek Google Cloud:** labtrack-1026146, region asia-southeast2
-meta: **Repositori:** github.com/Muhammadabrarrayhan2/labtrack
-meta: **Pengelola:** [Nama lengkap peserta]
+meta: **Repositori:** https://github.com/Muhammadabrarrayhan2/labtrack
+meta: **Pengelola:** Muhammad Abrar Rayhan
 meta: **Pembaruan terakhir:** 26 Oktober 2026
 ---
 # Tentang dokumen ini
