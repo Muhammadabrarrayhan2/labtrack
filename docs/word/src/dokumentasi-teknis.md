@@ -4,7 +4,7 @@ kicker: Dokumentasi proyek · Untuk pengembang dan pengelola sistem
 subtitle: Arsitektur, konfigurasi, API, infrastruktur, CI/CD, operasi, dan pemulihan
 header: Dokumentasi Teknis LabTrack
 numbered: yes
-meta: **Versi aplikasi:** 1.0.2 (commit 81840b2)
+meta: **Versi aplikasi:** 1.0.2 (commit 86d0b79)
 meta: **Aplikasi web:** https://labtrack-api-b26757zszq-et.a.run.app/app/
 meta: **Dokumentasi API:** https://labtrack-api-b26757zszq-et.a.run.app/docs
 meta: **Proyek Google Cloud:** labtrack-1026146, region asia-southeast2
